@@ -3,7 +3,7 @@
 # Project created by QtCreator 2016-09-01T16:10:47
 #
 #-------------------------------------------------
-#���Ե�ַ�� http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8
+#test url�� http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8
 
 QT       += core gui
 
@@ -16,7 +16,7 @@ MOC_DIR = obj/Moc
 OBJECTS_DIR = obj/Obj
 
 
-#�������ļ�ֱ�ӷŵ�Դ��Ŀ¼�µ�binĿ¼�£���dll�������˴�Ŀ¼�У����Խ������к��Ҳ���dll����
+
 #DESTDIR=$$PWD/bin/
 contains(QT_ARCH, i386) {
     message("32-bit")
@@ -30,9 +30,9 @@ QMAKE_CXXFLAGS += -std=c++11
 TARGET = VideoPlayer
 TEMPLATE = app
 
-#������Ƶ�������Ĵ���
+
 include(module/VideoPlayer/VideoPlayer.pri)
-#�������϶������Ĵ���
+
 include(module/DragAbleWidget/DragAbleWidget.pri)
 
 SOURCES += \
@@ -44,7 +44,7 @@ SOURCES += \
     src/MainWindow.cpp \
     src/Widget/ShowVideoWidget.cpp \
     src/Widget/VideoSlider.cpp \
-    thread/myThread.cpp
+    src/thread/myThread.cpp
 
 HEADERS  += \
     src/AppConfig.h \
@@ -54,7 +54,7 @@ HEADERS  += \
     src/Widget/ShowVideoWidget.h \
     src/Widget/VideoSlider.h \
     src/Widget/mymessagebox_withTitle.h \
-    thread/myThread.h
+    src/thread/myThread.h
 
 
 FORMS    += \
