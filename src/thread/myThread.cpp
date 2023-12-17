@@ -26,11 +26,8 @@ void myThread::setFlag(bool flag)
 void myThread::downloadCmd(QString s, QString FolderPath){
     QString strTime = QDateTime::currentDateTime().toString("hh-mm-ss");//格式化时间
     QString DirPath= FolderPath+"/D-"+strTime;
-    //DirPath.replace("/","\\");
-    //DirPath+=strTime;
     QDir dir(DirPath);
     DirPath = dir.fromNativeSeparators(DirPath);//  "\\"转为"/"
-
 
      if (!dir.exists()) dir.mkdir(DirPath);
 
@@ -57,40 +54,8 @@ void myThread::downloadCmd(QString s, QString FolderPath){
     downloadCmdFile.write("\nren \"%filename1%\" \"merge1.mp4\"");
     downloadCmdFile.write("\nren \"%filename2%\" \"merge2.m4a\"");
 
-
     downloadCmdFile.write("\ncd ..");
     downloadCmdFile.write("\ncd ..");
-//                downloadCmdFile.write("\nmove \"merge1.mp4\" ");
-//                downloadCmdFile.write(DirPath.toStdString().c_str());
-//                downloadCmdFile.write("\nmove \"merge2.m4a\" ");
-//                downloadCmdFile.write(DirPath.toStdString().c_str());
-
-    //downloadCmdFile.write("\ncd ");
-    //downloadCmdFile.write(DirPath.toStdString().c_str());
-    //downloadCmdFile.write("\nchcp 65001");
-
-
-
-
-
-    //downloadCmdFile.write("\nmkdir 2=<name2.txt");
-
-
-
-//                downloadCmdFile.write("\nren Dir");
-//                downloadCmdFile.write(strTime);
-//                downloadCmdFile.write("/\"%filename1%\" Dir");
-//                downloadCmdFile.write(strTime);
-//                downloadCmdFile.write("/\"merge1.mp4\"");
-
-//                downloadCmdFile.write("\nren Dir");
-//                downloadCmdFile.write(strTime);
-//                downloadCmdFile.write("/\"%filename2%\" Dir");
-//                downloadCmdFile.write(strTime);
-//                downloadCmdFile.write("/\"merge2.m4a\"");
-    //downloadCmdFile.write("\ncd ..");
-    //downloadCmdFile.write("\ncd ..");
-
     downloadCmdFile.write("\nffmpeg -i \"");
     downloadCmdFile.write(DirPath.toStdString().c_str());
     downloadCmdFile.write("/merge1.mp4\" -i \"");
@@ -98,44 +63,13 @@ void myThread::downloadCmd(QString s, QString FolderPath){
     downloadCmdFile.write("/merge2.m4a\" -y -acodec copy -vcodec copy \"./Downloads/mergeResult.mp4\"");
     downloadCmdFile.write("\ncd Downloads");
     downloadCmdFile.write("\nren \"mergeResult.mp4\" \"%filename1%\"");
-
-    //downloadCmdFile.write("\nmove \"%filename1%\" \"");
-    //downloadCmdFile.write(mFolderPath.toStdString().c_str());
-    //downloadCmdFile.write("/%filename1%\"");
-
-    //downloadCmdFile.write("\ncd ..");
     downloadCmdFile.write("\ncd D-");
     downloadCmdFile.write(strTime.toStdString().c_str());
-    //downloadCmdFile.write("\ncd ..");
 
     downloadCmdFile.write("\ndel /F merge1.mp4");
     downloadCmdFile.write("\ndel /F merge2.m4a");
     downloadCmdFile.write("\ndel /F download.cmd");
 
-//                downloadCmdFile.write("\nmove \"%filename1%\" \"");
-//                downloadCmdFile.write(mFolderPath.toStdString().c_str());
-//                downloadCmdFile.write("/%filename1%\"");
-
-    //downloadCmdFile.write("\ncd ..");
-    //downloadCmdFile.write("\nrmdir D-");
-    //downloadCmdFile.write(strTime.toStdString().c_str());
-
-
-//                downloadCmdFile.write("\ndel ");
-
-//                downloadCmdFile.write((DirPath+"/download.cmd").toStdString().c_str());
-//                downloadCmdFile.write("\ndel ");
-//                downloadCmdFile.write((DirPath+"/merge1.mp4").toStdString().c_str());
-//                downloadCmdFile.write("\ndel ");
-//                downloadCmdFile.write((DirPath+"/merge2.m4a").toStdString().c_str());
-
-//                downloadCmdFile.write("\nrmdir ");
-//                downloadCmdFile.write(DirPath.toStdString().c_str());
-    //                downloadCmdFile.write("\ndel merge1.mp4");
-    //                downloadCmdFile.write("\ndel merge2.m4a");
-    //                downloadCmdFile.write("\ndel name1.txt");
-    //                downloadCmdFile.write("\ndel name2.txt");
-    //  downloadCmdFile.write("\ndel download.cmd");
     downloadCmdFile.close();
 
     STARTUPINFO si;//创建进程所需的信息结构变量
@@ -179,6 +113,7 @@ void myThread::downloadCmd(QString s, QString FolderPath){
 
                 }
                 dir.rmdir(DirPath);
+                qDebug() << "Download OK" << endl;
             }
              qDebug() << "convert consume " << t2 - t1 << "ms" << endl;
             CloseHandle(pi.hThread);

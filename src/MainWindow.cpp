@@ -462,8 +462,13 @@ void MainWindow::doAddStream()
     if (dialog.exec() == QDialog::Accepted)
     {
         QString s = dialog.getVideoUrl();
+		
+		doAddUrl(s);
+    }
+}
 
-        if (!s.isEmpty())
+void MainWindow::doAddUrl(QString s){
+	        if (!s.isEmpty())
         {
             // mIsNeedPlayNext = false;
             //mPlayer->stop(true); //如果在播放则先停止
@@ -480,7 +485,7 @@ void MainWindow::doAddStream()
             {
 
                 setDownloadingFlag(true);
-
+                qDebug()<<"Downloading"<<endl;
                 emit sig_download(s,mFolderPath);
 
 
@@ -495,7 +500,7 @@ void MainWindow::doAddStream()
                             //AppConfig::saveConfigInfoToFile();
             }
         }
-    }
+	
 }
 
 void MainWindow::doDelete()
@@ -549,7 +554,14 @@ qDebug()<<__FUNCTION__<<RowList;
             mVideoFileList.removeAt(row);
 
             if(mVideoFileList.indexOf(itemToDelete)==-1){
-                doDeleteFile(itemToDelete);
+                if(doDeleteFile(itemToDelete)){
+                    qDebug()<<"Del true"<<endl;
+                }
+                else{
+                    mVideoFileList.insert(row,itemToDelete);
+                    qDebug()<<"Del false"<<endl;
+                    return;
+                }
             }
 
             //mVideoFileList.removeAt(i);
@@ -582,11 +594,20 @@ bool MainWindow::doDeleteFile(const QString &strPath)//要删除的文件夹或�
     QFileInfo FileInfo(strPath);
 
     if (FileInfo.isFile())//如果是文件
-        QFile::remove(strPath);
+    {
+        if(QFile::remove(strPath)){
+            return true;
+        }
+        else return false;
+    }
+
     else if (FileInfo.isDir())//如果是文件夹
     {
         QDir qDir(strPath);
-        qDir.removeRecursively();
+        if(qDir.removeRecursively()){
+            return true;
+        }
+        else return false;
     }
     return true;
 }

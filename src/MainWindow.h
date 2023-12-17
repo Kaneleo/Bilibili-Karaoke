@@ -81,6 +81,7 @@ private:
     BOOL getDownloadingFlag();
     void doAdd();
     void doAddStream();
+	void doAddUrl(QString s);
     void doDelete();
     bool doDeleteFile(const QString &strPath);
     void doClear();
