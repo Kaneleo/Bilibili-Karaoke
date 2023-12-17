@@ -378,7 +378,6 @@ void MainWindow::slotTimerTimeOut()
     else if (QObject::sender() == mCheckFilesTimer){
 
         if (!mFolderPath.isEmpty()){
-            //mVideoFileList.clear();
             // 获取所有文件名
             QStringList fileList;
             QDir dir(mFolderPath);
@@ -392,6 +391,7 @@ void MainWindow::slotTimerTimeOut()
             mImgNames = dir.entryList();
 
             if(mImgNames.size()>mVideoFileListLocal.size()){
+                //添加文件
                 for (int i = 0; i < mImgNames.size(); ++i)
                 {
                      newFileName= mFolderPath + "/" +mImgNames[i];
@@ -400,17 +400,31 @@ void MainWindow::slotTimerTimeOut()
                          mVideoFileListLocal.append(newFileName);
                      }
                 }
-                //ui->listWidget->clear();
-
                 addVideoFiles(fileList);
-
-
             }
+            else if(mImgNames.size()<mVideoFileListLocal.size()){
+                for (int j = 0; j < mVideoFileListLocal.size(); ++j)
+                {
+                     newFileName= mVideoFileListLocal.at(j);
+                     QFileInfo fileI2nfo(newFileName);
+                     if(mImgNames.indexOf(fileI2nfo.fileName())==-1){
 
+                         //mVideoFileList.removeAt(j);
+                         mVideoFileListLocal.removeAt(j);
 
+                         for(int mVideoFileListIndex=0; mVideoFileListIndex<mVideoFileList.size();++mVideoFileListIndex){
+                             if(newFileName==mVideoFileList.at(mVideoFileListIndex)){
+                                 mVideoFileList.removeAt(mVideoFileListIndex);
+                                 ui->listWidget->takeItem(mVideoFileListIndex);
+                                 --mVideoFileListIndex;
+                             }
+                         }
+                         break;
+                     }
+                }
+                    setVideoNums(mVideoFileList.size());
+            }
         }
-
-
     }
 }
 
