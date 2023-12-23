@@ -1,0 +1,43 @@
+﻿<html>
+
+<body>
+	<div id="dev1" style="float:left;">
+		<textarea id="input_url" rows="10" cols="60">https://www.bilibili.com/video/BV1Ys4y1r7Dj/?p=51</textarea>
+	</div>
+
+	<div id="dev2" style="width:100px;float:left;">
+		<textarea id="add_result" rows="5" cols="5">空闲中</textarea>
+		<button type="button" id="submit_btn">添加</button>
+	</div>
+
+	<script>
+
+		//var addResult = document.getElementById("add_result");
+		var submitBtn = document.getElementById("submit_btn");
+
+		submitBtn.onclick = function () {
+			var inputUrl = input_url.value;
+			add_result.value = '正在添加中……';
+
+
+			var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+			httpRequest.open('POST', 'form', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+			httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+			var obj = { "inputUrl": inputUrl  };
+			httpRequest.send(JSON.stringify(obj));//发送请求 将json写入send中
+			
+			/**
+			 * 获取数据后的处理程序
+			 */
+			// httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
+			// 	if (httpRequest.readyState == 4 && httpRequest.status == 200) {//验证请求是否发送成功
+			// 		var json = httpRequest.responseText;//获取到服务端返回的数据
+			// 		console.log(json);
+			// 	}
+			// };
+		};
+	</script>
+
+</body>
+
+</html>

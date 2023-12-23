@@ -1,0 +1,474 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+   	<title> 在线运行调试</title>
+     	<meta name='robots' content='max-image-preview:large' />
+<link rel='stylesheet' id='wpProQuiz_front_style-css'  href='https://c.runoob.com/wp-content/plugins/Wp-Pro-Quiz/css/wpProQuiz_front.min.css?ver=0.37' type='text/css' media='all' />
+<link rel="canonical" href="https://c.runoob.com/compile/12/" />
+<meta name="keywords" content="在线运行调试">
+<meta name="description" content="在编辑器上输入简单的 C++ /python/java代码，可在线编译运行。..">
+  <link rel="shortcut icon" href="https://static.runoob.com/images/c-runoob-logo.ico">  
+			<script src="//cdn.staticfile.org/codemirror/5.48.2/codemirror.min.js"></script>
+		<script src="https://cdn.staticfile.org/codemirror/5.48.2/addon/mode/simple.min.js"></script>
+		<link rel="stylesheet" href="//cdn.staticfile.org/codemirror/5.48.2/codemirror.min.css">
+   
+				
+		<script src="//cdn.staticfile.org/codemirror/5.48.2/mode/clike/clike.js"></script>
+				
+    	
+    <!-- Bootstrap Core CSS -->
+	<link rel="stylesheet" href="https://c.runoob.com/wp-content/themes/toolrunoob2/bootstrap.min.css">
+
+   <!-- Custom Fonts -->
+   <link href="https://cdn.staticfile.org/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" type="text/css">
+    <!--[if lt IE 9]> 
+        <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+        <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- PHP 代码 -->
+    <link rel="stylesheet" href="https://c.runoob.com/wp-content/themes/toolrunoob2/style.css?version=1.308">
+
+    <script src="https://cdn.staticfile.org/jquery/2.2.4/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/clipboard.js/2.0.4/clipboard.min.js"></script>
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg fixed-top navbar-dark" style="background: #393D49;"> 
+  <a class="navbar-brand mr-auto mr-lg-2" href="/">C++工具</a>
+  <button class="navbar-toggler p-0 border-0" type="button" id="navbarSideCollapse" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+</nav>
+<script>
+var is_home = false;
+</script>
+<style>
+.runoob-page-content {
+    margin: 0 20px;
+}
+</style>
+<div class="runoob-page-content">
+
+	
+
+<style>
+.CodeMirror {height: 500px}
+</style>
+<script src="https://cdn.staticfile.org/downloadjs/1.4.8/download.min.js"></script>
+<div class="row">
+
+	<div class="col-md-12">
+	<div class="split">
+    <div id="split-0" class="bg-body rounded shadow-sm">
+		<div class="card">
+					<div id="compiler" class="card-header">
+<form>
+  <div class="form-row align-items-center">
+    <div class="col-auto">
+	<button type="button" class="btn btn-primary mr-sm-1" id="submitBTN" ><i class="fa fa-paper-plane"></i> 点击运行</button>
+    </div>
+    
+	 <div class="col-auto"><input type="text" class="form-control mr-sm-1" name="stdin" id="stdin" placeholder="标准输入(stdin)"></div>  
+    <div class="col-auto">
+	<select class="form-control mr-sm-1" id="sel1">
+		<option selected="selected" value="https://8.130.26.145/">C++ 在线工具</option>	</select>
+    </div>
+    <div class="col-auto">
+	<button type="button" class="btn btn-outline-warning copycode mr-sm-1" id="copycode"><i class="fa fa-copy" aria-hidden="true"></i> 复制</button>
+	<button type="button" class="btn btn-outline-danger mr-sm-1" id="clearCode" ><i class="fa fa-eraser" aria-hidden="true"></i> 清空</button>
+	<button type="button" class="btn btn-outline-dark mr-sm-1" id="downloadCode" ><i class="fas fa-cloud-download-alt"></i> 下载</button>
+    </div>
+
+  </div>
+</form>
+			</div>
+			<div class="card-body">
+                <div class="row" style="margin: 0;">
+                  <div class="col-md-7">
+                    <textarea class="form-control"  id="code" name="code" rows="18">
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    cout << "Hello World"<<endl;
+    return 0;
+}
+</textarea>
+                  </div>
+                  <div class="col-md-5">
+                    <textarea placeholder="运行结果……" class="form-control" id="compiler-textarea-result" rows="23" ></textarea>
+                  </div>
+                </div>
+			</div>
+
+</div></div>
+
+
+		</div>
+	</div>
+
+</div>
+<script>
+var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+	lineNumbers: true,
+	matchBrackets: true,
+	mode: "text/x-c++src",
+	indentUnit: 4,
+	indentWithTabs: true,
+});
+btn = $("#submitBTN");
+editor.on("change",function(editor,change){
+	btn.prop('disabled', false);
+});
+btn.click(function() {
+	btn.prop('disabled', true);
+	loadingdata = '程序正在运行中……';
+	$("#compiler-textarea-result").val(loadingdata);
+  
+	code = editor.getValue();
+	stdin = '';
+	if ($('#stdin').length > 0) { 
+		stdin = $("#stdin").val();
+	}
+
+	$.post("/post",{"code":code, "stdin":stdin},function(data){
+
+    data=JSON.parse(data);  
+    
+    if(data.build_error=="\"\""&&data.run_error==""){
+      data.build_error="";
+      $("#compiler-textarea-result").val(data.run_output);
+      
+    } 
+    else if(data.run_error!=""){
+    
+      $("#compiler-textarea-result").val("Run Output: \n"+data.run_output +
+                                       "\n\nRun Return: "+data.run_error );
+    }
+    else
+      $("#compiler-textarea-result").val("Build Error : \n"+data.build_error);
+	});
+ 
+	setTimeout(function(){ 
+        btn.prop('disabled', false);
+    }, 10*1000);
+});
+$("#clearCode").click(function() {
+	var r=confirm("确认清空？");
+	if (r==true){
+		editor.setValue("");
+		editor.clearHistory();
+		$("#compiler-textarea-result").val("");
+		btn.prop('disabled', true);
+	}
+});
+$("#downloadCode").click(function() {
+	download( editor.getValue(), "test.cpp", "text/plain"); 
+});
+$(function(){
+  // bind change event to select
+  $('#sel1').on('change', function () {
+      var url = $(this).val(); // get selected value
+      if (url) { // require a URL
+          window.location = url; // redirect
+      }
+      return false;
+  });
+});
+new ClipboardJS('#copycode', {
+	text: function(trigger) {
+		return editor.getDoc().getValue();
+	}
+}).on('success', function(e) {
+   $("#copycode").html('已复制');
+   setTimeout(function(){ $("#copycode").html("<i class=\"fa fa-copy\" aria-hidden=\"true\"></i> 复制"); }, 2000);
+   e.clearSelection();
+}).on('error', function(e) {
+    alert('Error!');
+});
+</script>
+</div>
+<div class="row " style="margin: 20px 10px;">
+<div class="col-md-12 ">
+
+<div class="text-center mt-3 shadow">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- 移动版 自动调整 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-5751451760833794"
+     data-ad-slot="1691338467"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</div>
+</div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.staticfile.org/bootstrap/4.6.0/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script>
+
+
+$(function() {
+	//代码高亮
+	$('pre').each(function() {
+		if(!$(this).hasClass("prettyprint")) {
+			$(this).addClass("prettyprint");
+		}
+	});
+ 
+
+
+  if(is_home) {
+    $(window).scroll(function () {
+      var _stop = $(window).scrollTop();
+      if(_stop>=100) {
+        $("#go-top").fadeIn();
+        
+      }else {
+        $("#go-top").fadeOut();
+      }
+    });
+    _current_hash = window.location.hash;
+    console.log(_current_hash);
+    if(_current_hash) {
+     
+        var $targetEle = $(_current_hash);
+        var sTop =  $targetEle.offset().top;
+        $('html, body').stop().animate({
+            'scrollTop':sTop-100
+        }, 300, 'swing', function (e) {
+         // window.location.hash = targetEle;
+        }); 
+        console.log(sTop);
+        return false;
+     
+    }
+    $("#go-top").click(function(event){	
+     $('html,body').animate({scrollTop:0}, 100);
+     return false;
+    });
+    // 导航
+    var _html_nav='<a class="nav-link active" href="javascript:void();"><i class="fa fa-compass" aria-hidden="true"></i> 快速导航</a>';
+    var _html_right_nav = '<button class="dropdown-item" href="#"><i class="fa fa-th-list" aria-hidden="true"></i> 快速导航</button><div class="dropdown-divider"></div>';
+    var _html_left_nav = '<dt><span class="show-list"></span></dt>';
+    for (var i=0;i<data_hrefs.length;i++)
+    { 
+        id="runoob-goto-" + data_hrefs[i];
+        _html_nav += '<a class="nav-link" href="#'+id+'">'+$("#"+id).data("text")+'</a>';
+        _html_right_nav +='<button class="dropdown-item" onclick="location.href=\'#'+id+'\'" type="button"><i class="fa fa-caret-right" aria-hidden="true"></i> '+$("#"+id).data("text")+'</button>' ;
+        _html_left_nav +='<dd><a href="#'+id+'" class="auto-scroll" data-offset="98" data-speed="500">'+$("#"+id).data("text")+'</a></dd>';
+    }
+    $(".nav-underline").html(_html_nav);
+    $("#right_nav_list").html(_html_right_nav);
+    $("#goto").html(_html_left_nav);
+    if($(".nav-scroller").is(":visible")){
+      $('a[href^="#"]').on('click', function (e) {
+          e.preventDefault();
+          $(this).addClass('nav-underline-active');
+          $(this).siblings().removeClass('nav-underline-active');
+          var targetEle = this.hash;
+          var $targetEle = $(targetEle);
+          var sTop =  $targetEle.offset().top;
+          $('html, body').stop().animate({
+              'scrollTop':sTop-100
+          }, 300, 'swing', function () {
+          //   window.location.hash = targetEle;
+          });
+      });
+    } else {
+      $('a[href^="#"]').on('click', function (e) {
+          e.preventDefault();
+          var targetEle = this.hash;
+          var $targetEle = $(targetEle);
+          var sTop =  $targetEle.offset().top;
+          $('html, body').stop().animate({
+              'scrollTop':sTop-56   
+          }, 300, 'swing', function () {
+          //   window.location.hash = targetEle;
+          });
+      });
+    }
+  } else { 
+    $("#top").hide();
+  }
+  $('[data-toggle="tooltip"]').tooltip();
+
+  // search
+  if($('#search-name').length){
+      var _href=  $("#search-name .nav-underline-active").attr("href");
+  }
+ 
+  $('#search-name li a').each(function(){
+    $(this).on("click", function(e){
+      e.preventDefault();
+      _href = $(this).attr('href');
+      $(this).removeClass("text-muted").addClass("nav-underline-active");
+      $(this).parent().siblings().find("a").addClass("text-muted").removeClass("nav-underline-active");
+    //  console.log(_href);
+    });
+    
+  })
+
+  $('#search-button').on("click", function(e){
+   // console.log(_href);
+    _hmt.push(['_trackEvent', 'Search', 'Click', '搜索工具']);
+    keyword = $(".search").find("input:text").val();
+    window.open(_href + keyword, '_blank');
+  });
+  $(".search").find("input:text").keypress(function (e) {
+    var key = e.which;
+    if(key == 13)  // the enter key code
+    {
+      window.open(_href + $(this).val(), '_blank'); 
+      return false;  
+    }
+  });  
+});
+
+(function($){ 
+  var p=$('.runoob-item-index'); 
+  if(p.length<1) return;
+  var arr=[];
+  function part_offset_top() {
+    p.each(function () {
+      var of=$(this).offset();
+      arr.push(Math.floor(of.top));
+    });
+  }
+  function goto_current(index) {
+    var a=$('#goto dd');
+    var b=$('#goto dt');
+    if(a.length<1) return;
+    var h=a.outerHeight();
+    if (!a.eq(index).hasClass('current')) {
+      a.removeClass('current');
+      a.eq(index).addClass('current');
+     // console.log(index)
+      b.animate({
+        'top': h*index+(a.outerHeight()-b.outerHeight())/2+1
+      },50);
+    }
+  }
+  function window_scroll() {
+    var st=window.pageYOffset
+    			|| document.documentElement.scrollTop
+    			|| document.body.scrollTop
+    			|| 0;
+    var limit=Math.ceil(st+98);
+    var index=0;
+    for (var i = 0; i < arr.length; i++) {
+      if (limit>=arr[i]) {
+        index=i;
+      }else{
+        break;
+      }
+    }
+    if (index<0) index=0;
+    if (!p.eq(index).hasClass('current')) {
+      p.removeClass('current');
+      p.eq(index).addClass('current');
+      goto_current(index);
+    }
+  }
+  part_offset_top();
+  setTimeout(window_scroll,0);
+  $(window).on('scroll',window_scroll);
+})(jQuery);
+/* --侧边栏滚动时固定-- */
+(function($){
+  var s=$('.sidebar');
+  
+  if(s.length<1) return;
+  var c=s.children('.content-sidebar');
+  if(c.length<1) return;
+  var $parent=s.parent();
+  if($parent.length<1) return;
+  var start=0,stop=0,cHeight=0;
+  function init() {
+    var soffset=s.offset();
+    start=soffset.top;
+    stop=start+$parent.height();
+    cinit();
+  }
+  function cinit() {
+    cHeight=c.height();
+  }
+  function cClear(){
+    c.removeClass('fixed');
+    c.removeClass('absolute');
+  }
+  function check_scroll(){
+    var st=window.pageYOffset
+    			|| document.documentElement.scrollTop
+    			|| document.body.scrollTop
+    			|| 0;
+    if (st<=start) {
+      cClear();
+    }
+    if (st>=stop-cHeight) {
+      c.removeClass('fixed');
+      c.addClass('absolute');
+      return;
+    }
+    if (st<stop-cHeight && st>start) {
+      c.removeClass('absolute');
+      c.addClass('fixed');
+    }
+  }
+  
+  init();
+  check_scroll();
+  $(window).on('resize',init);
+  $(window).on('scroll',check_scroll);
+})(jQuery);
+
+(function () {
+  'use strict'
+
+  document.querySelector('#navbarSideCollapse').addEventListener('click', function () {
+    document.querySelector('.offcanvas-collapse').classList.toggle('open')
+  })
+})()
+</script>
+<div style="display:none;">
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?68c6d4f0f6c20c5974b17198fa6fd40a";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</div>
+</body>
+
+	    <body>		
+		<form method="post">
+		url: <input type="text" name="urlAddr">
+		<br>
+		<input type="submit">
+        </form>
+    </body>
+
+</html>
