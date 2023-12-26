@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 叶海辉
  * QQ群121376426
  * http://blog.yundiantech.com/
@@ -43,6 +43,8 @@ public:
     void startPlay(); //播放第一个
     void stopPlay();
     void setFolderPath(const QString FolderPath);
+    void setDownloadThread(myThread *myObject1);
+    BOOL getDownloadingFlag();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -54,7 +56,7 @@ private:
     BOOL mDownloadingFlag;
 
     myThread *myObject;
-     QThread *newThread;
+    QThread *newThread;
 
     QString mFolderPath;
 
@@ -63,6 +65,7 @@ private:
     float mVolume;
 
     QTimer *mCheckFilesTimer;
+    QTimer *mChangeTimer;
 
     QTimer *mTimer_CheckControlWidget; //用于控制控制界面的出现和隐藏
     QPropertyAnimation *mAnimation_ControlWidget;   //控制底部控制控件的出现和隐藏
@@ -76,15 +79,19 @@ private:
     QAction *mEditVideoAction;
     QAction *mDeleteVideoAction;
     QAction *mClearVideoAction;
+    QAction *mChangeVocalAction;
+
 
     void setDownloadingFlag(BOOL flag);
-    BOOL getDownloadingFlag();
+
     void doAdd();
     void doAddStream();
 	void doAddUrl(QString s);
     void doDelete();
     bool doDeleteFile(const QString &strPath);
     void doClear();
+    void doChangeVocal();
+
 
     void setVideoNums(const int &nums);
 
@@ -99,7 +106,7 @@ private:
     void playVideo(const int &index);
     void playVideoFile(const QString &filePath);
 signals:
-        void sig_download(QString s, QString FolderPath);
+        void sig_download(QString s);
 
 private slots:
     ///播放器相关的槽函数
@@ -110,7 +117,7 @@ private slots:
 
     void slotCustomContextMenuRequested();
     void slotActionClick();
-
+    void close_downloadCmd();
 
 
     ///以下函数，是播放器的回调函数，用于输出信息给界面

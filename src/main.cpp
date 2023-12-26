@@ -1,4 +1,4 @@
-
+﻿
 /**
  * 叶海辉
  * QQ群121376426
@@ -12,6 +12,19 @@
 
 #include "AppConfig.h"
 #include "MainWindow.h"
+
+#include <QDir>
+#include "src/Web/global.h".h"
+#include "httplistener.h"
+#include "src/Web/requestmapper.h"
+#include "src/Web/Controller/formcontroller.h"
+#include "src/thread/myThread.h"
+
+
+using namespace stefanfrings;
+QString searchConfigFile();
+
+QString docrootPath;
 
 #undef main
 int main(int argc, char *argv[])
@@ -58,9 +71,67 @@ int main(int argc, char *argv[])
 
     //AppConfig::WriteLog(QString( "\n #############\n Version = %1 \n ##############").arg(AppConfig::VERSION_NAME));
 
+       a.setApplicationName("Web");
+    QString configFileName=searchConfigFile();
+
+    // Configure static file controller
+    QSettings* fileSettings=new QSettings(configFileName,QSettings::IniFormat,&a);
+    fileSettings->beginGroup("docroot");
+    staticFileController=new StaticFileController(fileSettings,&a);
+
+    // Configure and start the TCP listener
+    QSettings* listenerSettings=new QSettings(configFileName,QSettings::IniFormat,&a);
+    listenerSettings->beginGroup("listener");
+    new HttpListener(listenerSettings,new RequestMapper(&a),&a);
     MainWindow w;
+
+
+
+   // w.setDownloadThread(myObject);
+    //newThread->start();
     w.show();
 
     return a.exec();
 }
+
+
+/** Search the configuration file */
+QString searchConfigFile()
+{
+    QString binDir=QCoreApplication::applicationDirPath();
+    docrootPath=QCoreApplication::applicationDirPath()+"/../src/Web/doc/docroot/";
+    QString appName=QCoreApplication::applicationName();
+    QString fileName("Demo1.ini");
+
+    QStringList searchList;
+    searchList.append(binDir);
+    searchList.append(binDir+"/etc");
+    searchList.append(binDir+"/../etc");
+    searchList.append(binDir+"/../src/Web/doc");
+    searchList.append(binDir+"/../"+appName+"/etc");     // for development with shadow build (Linux)
+    searchList.append(binDir+"/../../"+appName+"/etc");  // for development with shadow build (Windows)
+    searchList.append(binDir+"/../../etc");
+    searchList.append(QDir::rootPath()+"etc/opt");
+    searchList.append(QDir::rootPath()+"etc");
+
+    foreach (QString dir, searchList)
+    {
+        QFile file(dir+"/"+fileName);
+        if (file.exists())
+        {
+            fileName=QDir(file.fileName()).canonicalPath();
+            qDebug("Using config file %s",qPrintable(fileName));
+            return fileName;
+        }
+    }
+
+    // not found
+    foreach (QString dir, searchList)
+    {
+        qWarning("%s/%s not found",qPrintable(dir),qPrintable(fileName));
+    }
+    qFatal("Cannot find config file %s",qPrintable(fileName));
+    return nullptr;
+}
+
 

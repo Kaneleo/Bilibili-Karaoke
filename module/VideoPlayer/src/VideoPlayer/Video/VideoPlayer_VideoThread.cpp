@@ -341,7 +341,7 @@ void VideoPlayer::decodeVideoThread()
 
                 if (mAudioStream != NULL && !mIsAudioThreadFinished)
                 {
-                    if (mIsReadFinished && mAudioPacktList.size() <= 0)
+                    if (mIsReadFinished && mAudioPacktListVec[mAudioIndex]->size() <= 0)
                     {//读取完了 且音频数据也播放完了 就剩下视频数据了  直接显示出来了 不用同步了
                         break;
                     }

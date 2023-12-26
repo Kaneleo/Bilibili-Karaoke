@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 叶海辉
  * QQ群121376426
  * http://blog.yundiantech.com/
@@ -24,7 +24,7 @@
 
 #include <windows.h>
 #include <QFile>
-
+#include "Web/Controller/formcontroller.h"
 #include <QFileDialog>
 
 
@@ -36,8 +36,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this->getContainWidget());
+
+
     newThread = new QThread;
     myObject = new myThread;
+    myObject->setPath(QCoreApplication::applicationDirPath()+"/Downloads");
     myObject->moveToThread(newThread);
 
     FunctionTransfer::init(QThread::currentThreadId());
@@ -57,18 +60,23 @@ MainWindow::MainWindow(QWidget *parent) :
     mEditVideoAction             = new QAction(QIcon("images/open.png"), QStringLiteral("修改数据"), this);
     mDeleteVideoAction           = new QAction(QIcon("images/open.png"), QStringLiteral("删除"), this);
     mClearVideoAction            = new QAction(QIcon("images/open.png"), QStringLiteral("清空"), this);
+    mChangeVocalAction            = new QAction(QIcon("images/open.png"), QStringLiteral("切换原唱伴唱"), this);
 
     mPopMenu->addAction(mAddVideoAction);
 //    mPopMenu->addAction(mEditVideoAction);
 //    mPopMenu->addSeparator();       //添加分离器
     mPopMenu->addAction(mDeleteVideoAction);
     mPopMenu->addAction(mClearVideoAction);
+    mPopMenu->addAction(mChangeVocalAction);
 
-    connect(this,SIGNAL(sig_download(QString,QString)),myObject,SLOT(downloadCmd(QString,QString)));
+    connect(this,SIGNAL(sig_download(QString)),myObject,SLOT(addurl(QString)),Qt::DirectConnection);
+    connect(myObject,SIGNAL(sig_downloadCmd_finished()),this,SLOT(close_downloadCmd()));
+
     connect(mAddVideoAction,     &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mEditVideoAction,    &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mDeleteVideoAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mClearVideoAction,   &QAction::triggered, this, &MainWindow::slotActionClick);
+    connect(mChangeVocalAction,     &QAction::triggered, this, &MainWindow::slotActionClick);
 
     connect(ui->pushButton_open, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
     connect(ui->toolButton_open, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
@@ -106,8 +114,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mCheckFilesTimer = new QTimer;
     connect(mCheckFilesTimer, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
-    setFolderPath(QCoreApplication::applicationDirPath()+"/Downloads");
+    setFolderPath(QDir::currentPath()+"/Downloads");
     mCheckFilesTimer->start(500);
+
+    mChangeTimer = new QTimer;
+    connect(mChangeTimer, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
+    //mChangeTimer->start(5000);
 
     mTimer_CheckControlWidget = new QTimer; //用于控制控制界面的出现和隐藏
     connect(mTimer_CheckControlWidget, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
@@ -125,7 +137,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mDownloadingFlag=false;
 
-    newThread->start();
+
 
     std::thread([=]
     {
@@ -275,6 +287,10 @@ void MainWindow::setFolderPath(const QString FolderPath)
     mFolderPath=FolderPath;
 }
 
+void MainWindow::setDownloadThread(myThread *myObject1){
+    myObject=myObject1;
+}
+
 void MainWindow::stopPlay()
 {
     if (mCurrentItem != nullptr)
@@ -326,9 +342,12 @@ qDebug()<<__FUNCTION__<<filePath<<playIndex;
 
 void MainWindow::playVideoFile(const QString &filePath)
 {
+    qDebug()<<"playVideoFile"<<endl;
     mIsNeedPlayNext = false;
-    mPlayer->stop(true);
+    //mPlayer->stop(true);
+
     mPlayer->startPlay(filePath.toStdString());
+
 }
 
 void MainWindow::slotSliderMoved(int value)
@@ -426,6 +445,9 @@ void MainWindow::slotTimerTimeOut()
             }
         }
     }
+    else if (QObject::sender() == mChangeTimer){
+        mPlayer->setAudioIndex(rand()%3);
+    }
 }
 
 void MainWindow::setDownloadingFlag(BOOL flag){
@@ -478,26 +500,25 @@ void MainWindow::doAddUrl(QString s){
                 mPlayer->startPlay(s.toStdString());
                 return ;
             }
-            else if(getDownloadingFlag()){
-                qDebug()<<"Downloading"<<endl;
-            }
-            //else 同时开始下载
-            {
+            else{
+                if(s.indexOf("https://www.bilibili.com/video/")!=0){
 
-                setDownloadingFlag(true);
-                qDebug()<<"Downloading"<<endl;
-                emit sig_download(s,mFolderPath);
+                    qDebug()<<"Selected url is not suppported."<<endl;
 
+                    //addVideoFile(s);
+                    //mPlayer->startPlay(s.toStdString());
+                   // return ;
+                }
+                else{
+                    setDownloadingFlag(true);
+                    if(!newThread->isRunning())
+                        newThread->start();
+                    qDebug()<<"Downloading"<<endl;
+                    emit sig_download(s);
 
-
-
-
-//                WinExec((downloadCmdFilePath+" || rmdir Downloads/D-"+strTime).toStdString().c_str(),SW_SHOW);
-
-//                UINT WinExec(LPCSTR lpCmdLine, UINT uCmdShow);
-
-                            AppConfig::gVideoFilePath = s;
-                            //AppConfig::saveConfigInfoToFile();
+                    AppConfig::gVideoFilePath = s;
+                    //AppConfig::saveConfigInfoToFile();
+                }
             }
         }
 	
@@ -625,6 +646,18 @@ void MainWindow::doClear()
     }
 }
 
+void MainWindow::doChangeVocal(){
+
+    int audioIndex=mPlayer->getAudioIndex();
+
+    if(audioIndex==0)
+        mPlayer->setAudioIndex(1);
+    else if(audioIndex==1)
+        mPlayer->setAudioIndex(0);
+
+}
+
+
 void MainWindow::slotBtnClick(bool isChecked)
 {
     if (QObject::sender() == ui->pushButton_play)
@@ -685,6 +718,8 @@ void MainWindow::slotItemDoubleClicked(QListWidgetItem *item)
     if (QObject::sender() == ui->listWidget)
     {
         int index = ui->listWidget->row(item);
+        stopPlay();
+
         playVideo(index);
     }
 }
@@ -738,6 +773,10 @@ void MainWindow::slotActionClick()
     else if (QObject::sender() == mClearVideoAction)
     {
         doClear();
+    }
+    else if (QObject::sender() == mChangeVocalAction)
+    {
+        doChangeVocal();
     }
 }
 
@@ -896,4 +935,16 @@ bool MainWindow::eventFilter(QObject *target, QEvent *event)
 
     //其它部件产生的事件则交给基类处理
     return DragAbleWidget::eventFilter(target, event);
+}
+
+void MainWindow::close_downloadCmd(){
+    if(newThread->isRunning())
+       {
+           newThread->quit();
+           newThread->wait();
+       }
+
+    setDownloadingFlag(false);
+
+      qDebug()<<QThread::currentThreadId()<<"recv work stop signal"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
 }

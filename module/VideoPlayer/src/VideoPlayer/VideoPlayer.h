@@ -83,6 +83,8 @@ public:
     void seek(int64_t pos); //单位是微秒
 
     void setMute(bool isMute){mIsMute = isMute;}
+    void setAudioIndex(int audioIndex);
+    int getAudioIndex(){return mAudioIndex;}
     void setVolume(float value);
     float getVolume(){return mVolume;}
 
@@ -105,6 +107,10 @@ private:
     ///音量相关变量
     bool  mIsMute;
     float mVolume; //音量 0~1 超过1 表示放大倍数
+
+    int audioStream,videoStream;
+
+    int mAudioIndex=0; //默认音轨0，定义为原唱
 
     /// 跳转相关的变量
     int             seek_req = 0; //跳转标志
@@ -131,20 +137,20 @@ private:
     AVStream *mAudioStream; //音频流
 
     ///视频相关
-    AVFormatContext *pFormatCtx;
-    AVCodecContext *pCodecCtx;
-    AVCodec *pCodec;
+    AVFormatContext *pFormatCtx=nullptr;
+    AVCodecContext *pCodecCtx=nullptr;
+    AVCodec *pCodec=nullptr;
 
     ///音频相关
-    AVCodecContext *aCodecCtx;
-    AVCodec *aCodec;
-    AVFrame *aFrame;
+    AVCodecContext *aCodecCtx=nullptr;
+    AVCodec *aCodec=nullptr;
+    AVFrame *aFrame=nullptr;
 
     ///以下变量用于音频重采样
     /// 由于ffmpeg解码出来后的pcm数据有可能是带平面的pcm，因此这里统一做重采样处理，
     /// 重采样成44100的16 bits 双声道数据(AV_SAMPLE_FMT_S16)
-    AVFrame *aFrame_ReSample;
-    SwrContext *swrCtx;
+    AVFrame *aFrame_ReSample=nullptr;
+    SwrContext *swrCtx=nullptr;
 
     enum AVSampleFormat in_sample_fmt; //输入的采样格式
     enum AVSampleFormat out_sample_fmt;//输出的采样格式 16bit PCM
@@ -181,9 +187,10 @@ private:
 
     ///音频帧队列
     Cond *mConditon_Audio;
-    std::list<AVPacket> mAudioPacktList;
-    bool inputAudioQuene(const AVPacket &pkt);
+    std::vector<std::list<AVPacket>*> mAudioPacktListVec;
+    bool inputAudioQuene(const AVPacket &pkt, int   stream_index);
     void clearAudioQuene();
+    void clearAudiolists();
 
     ///本播放器中SDL仅用于播放音频，不用做别的用途
     ///SDL播放音频相关

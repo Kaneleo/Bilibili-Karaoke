@@ -10,6 +10,8 @@
 
 #include <stdio.h>
 
+#include <QDebug>
+
 VideoPlayer::VideoPlayer()
 {
     mConditon_Video = new Cond;
@@ -56,6 +58,19 @@ bool VideoPlayer::initPlayer()
 
 bool VideoPlayer::startPlay(const std::string &filePath)
 {
+    //ylw
+    seek_flag_audio = 0;
+    seek_flag_video = 0;
+    videoStream = -1;
+    audioStream = -1;
+
+//    clearAudiolists(); //释放音频队列空间
+//    clearVideoQuene();
+    audio_clock=0.0;
+    seek_time=0.0;
+    mAudioIndex=0;
+
+
     if (mPlayerState != VideoPlayer_Stop)
     {
         return false;
@@ -66,6 +81,8 @@ bool VideoPlayer::startPlay(const std::string &filePath)
 
     if (!filePath.empty())
         mFilePath = filePath;
+
+    qDebug()<<"VideoPlayer thread"<<endl;
 
     //启动新的线程实现读取视频文件
     std::thread([&](VideoPlayer *pointer)
@@ -156,6 +173,15 @@ void VideoPlayer::seek(int64_t pos)
     }
 }
 
+void VideoPlayer::setAudioIndex(int audioIndex){
+    if (pFormatCtx->nb_streams >=3 && pFormatCtx->streams[1]->codec->codec_type == AVMEDIA_TYPE_AUDIO && pFormatCtx->streams[2]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
+    {
+        qDebug()<<"set audio index:"<<audioIndex<<endl;
+        mAudioIndex = audioIndex;
+    }
+    else qDebug()<<"set audio index fail"<<endl;
+}
+
 void VideoPlayer::setVolume(float value)
 {
     mVolume = value;
@@ -218,7 +244,9 @@ void VideoPlayer::closeSDL()
         SDL_PauseAudioDevice(mAudioID, 1);
         SDL_UnlockAudioDevice(mAudioID);
 
-        SDL_CloseAudioDevice(mAudioID);
+        if (mAudioID > 0)
+            SDL_CloseAudioDevice(mAudioID);
+        else fprintf(stderr, "close sdl error\n");
     }
 
     mAudioID = 0;
@@ -255,7 +283,7 @@ void VideoPlayer::readVideoFile()
     audio_clock = 0;
     video_clock = 0;
 
-    int audioStream ,videoStream;
+
 
     //Allocate an AVFormatContext.
     pFormatCtx = avformat_alloc_context();
@@ -278,19 +306,17 @@ void VideoPlayer::readVideoFile()
         goto end;
     }
 
-    videoStream = -1;
-    audioStream = -1;
-
     ///循环查找视频中包含的流信息，
     for (int i = 0; i < pFormatCtx->nb_streams; i++)
     {
         if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
         {
-            videoStream = i;
-        }
-        if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO  && audioStream < 0)
+            videoStream++;
+        }        
+        if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) //ylw
         {
-            audioStream = i;
+            audioStream++;
+            mAudioPacktListVec.push_back(new std::list<AVPacket>);
         }
     }
 
@@ -332,7 +358,7 @@ void VideoPlayer::readVideoFile()
     if (audioStream >= 0)
     {
         ///查找音频解码器
-        aCodecCtx = pFormatCtx->streams[audioStream]->codec;
+        aCodecCtx = pFormatCtx->streams[audioStream+(videoStream+1)]->codec;
         aCodec = avcodec_find_decoder(aCodecCtx->codec_id);
 
         if (aCodec == NULL)
@@ -423,7 +449,7 @@ void VideoPlayer::readVideoFile()
             out_linesize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
 
-            mAudioStream = pFormatCtx->streams[audioStream];
+            mAudioStream = pFormatCtx->streams[audioStream+(videoStream+1)];
 
             ///打开SDL播放声音
             int code = openSDL();
@@ -467,7 +493,7 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
             if (videoStream >= 0)
                 stream_index = videoStream;
             else if (audioStream >= 0)
-                stream_index = audioStream;
+                stream_index = mAudioIndex+videoStream+1;
 
             AVRational aVRational = {1, AV_TIME_BASE};
             if (stream_index >= 0)
@@ -487,7 +513,8 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
                     av_new_packet(&packet, 10);
                     strcpy((char*)packet.data,FLUSH_DATA);
                     clearAudioQuene(); //清除队列
-                    inputAudioQuene(packet); //往队列中存入用来清除的包
+                    for(int i3=0;i3<=audioStream;++i3)
+                        inputAudioQuene(packet,i3); //往队列中存入用来清除的包
                 }
 
                 if (videoStream >= 0)
@@ -518,11 +545,24 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
 
         //这里做了个限制  当队列里面的数据超过某个大小的时候 就暂停读取  防止一下子就把视频读完了，导致的空间分配不足
         //这个值可以稍微写大一些
-        if (mAudioPacktList.size() > MAX_AUDIO_SIZE || mVideoPacktList.size() > MAX_VIDEO_SIZE)
-        {
-            mSleep(10);
-            continue;
+        //ylw
+
+        int maxBuffer=0;
+        for(int i2=0;i2<=audioStream;++i2){
+            if (mAudioPacktListVec[i2]->size() > MAX_AUDIO_SIZE || mVideoPacktList.size() > MAX_VIDEO_SIZE)
+            {
+                mSleep(10);
+                maxBuffer=1;
+                break;
+            }
         }
+        if(maxBuffer)continue;
+
+//        if (mAudioPacktListVec[mAudioIndex]->size() > MAX_AUDIO_SIZE || mVideoPacktList.size() > MAX_VIDEO_SIZE)
+//        {
+//            mSleep(10);
+//            continue;
+//        }
 
         if (mIsPause == true)
         {
@@ -549,7 +589,7 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
             inputVideoQuene(packet);
             //这里我们将数据存入队列 因此不调用 av_free_packet 释放
         }
-        else if( packet.stream_index == audioStream )
+        else if( pFormatCtx->streams[packet.stream_index]->codec->codec_type == AVMEDIA_TYPE_AUDIO  )
         {
             if (mIsAudioThreadFinished)
             { ///SDL没有打开，则音频数据直接释放
@@ -557,11 +597,25 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
             }
             else
             {
-                inputAudioQuene(packet);
+                inputAudioQuene(packet, packet.stream_index-(videoStream+1));
                 //这里我们将数据存入队列 因此不调用 av_free_packet 释放
             }
-
+//ylw change vocal and instrument
         }
+//        else if( packet.stream_index == 0 )
+//        {
+//            if (mIsAudioThreadFinished)
+//            { ///SDL没有打开，则音频数据直接释放
+//                av_packet_unref(&packet);
+//            }
+//            else
+//            {
+//                inputAudioQuene(packet);
+//                //这里我们将数据存入队列 因此不调用 av_free_packet 释放
+//            }
+
+//        }
+
         else
         {
             // Free the packet that was allocated by av_read_frame
@@ -578,7 +632,7 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
 
 end:
 
-    clearAudioQuene();
+    clearAudiolists();
     clearVideoQuene();
 
     if (mPlayerState != VideoPlayer_Stop) //不是外部调用的stop 是正常播放结束
@@ -604,7 +658,7 @@ end:
         av_frame_free(&aFrame);
         aFrame = nullptr;
     }
-
+//ylw
     if (aFrame_ReSample != nullptr)
     {
         av_frame_free(&aFrame_ReSample);
@@ -658,11 +712,11 @@ void VideoPlayer::clearVideoQuene()
 //        av_free_packet(&pkt);
         av_packet_unref(&pkt);
     }
-    mVideoPacktList.clear();
+    if(!mVideoPacktList.empty())mVideoPacktList.clear();
     mConditon_Video->Unlock();
 }
 
-bool VideoPlayer::inputAudioQuene(const AVPacket &pkt)
+bool VideoPlayer::inputAudioQuene(const AVPacket &pkt, int stream_index)
 {
     if (av_dup_packet((AVPacket*)&pkt) < 0)
     {
@@ -670,22 +724,41 @@ bool VideoPlayer::inputAudioQuene(const AVPacket &pkt)
     }
 
     mConditon_Audio->Lock();
-    mAudioPacktList.push_back(pkt);
+    mAudioPacktListVec[stream_index]->push_back(pkt);
     mConditon_Audio->Signal();
     mConditon_Audio->Unlock();
 
     return true;
 }
 
+void VideoPlayer::clearAudiolists(){
+    mConditon_Audio->Lock();
+    for(int i=0;i<=audioStream;i++){
+        for (AVPacket pkt : *mAudioPacktListVec[i])
+        {
+    //        av_free_packet(&pkt);
+            //ylw 有隐患
+            av_packet_unref(&pkt);
+        }
+        mAudioPacktListVec[i]->clear();
+    }
+    if(!mAudioPacktListVec.empty())mAudioPacktListVec.clear();
+    mConditon_Audio->Unlock();
+}
+
 void VideoPlayer::clearAudioQuene()
 {
     mConditon_Audio->Lock();
-    for (AVPacket pkt : mAudioPacktList)
-    {
-//        av_free_packet(&pkt);
-        av_packet_unref(&pkt);
+    for(int i=0;i<=audioStream;i++){
+        for (AVPacket pkt : *mAudioPacktListVec[i])
+        {
+    //        av_free_packet(&pkt);
+            //ylw 有隐患
+            av_packet_unref(&pkt);
+        }
+        mAudioPacktListVec[i]->clear();
     }
-    mAudioPacktList.clear();
+
     mConditon_Audio->Unlock();
 }
 

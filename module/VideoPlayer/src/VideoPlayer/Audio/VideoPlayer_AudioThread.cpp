@@ -91,7 +91,7 @@ int VideoPlayer::decodeAudioFrame(bool isBlock)
         if (mIsQuit)
         {
             mIsAudioThreadFinished = true;
-            clearAudioQuene(); //清空队列
+            clearAudiolists(); //清空队列
             break;
         }
 
@@ -102,7 +102,7 @@ int VideoPlayer::decodeAudioFrame(bool isBlock)
 
         mConditon_Audio->Lock();
 
-        if (mAudioPacktList.size() <= 0)
+        if (mAudioPacktListVec[mAudioIndex]->size() <= 0)
         {
             if (isBlock)
             {
@@ -115,12 +115,15 @@ int VideoPlayer::decodeAudioFrame(bool isBlock)
             }
         }
 
-        AVPacket packet = mAudioPacktList.front();
-        mAudioPacktList.pop_front();
+        AVPacket packet = mAudioPacktListVec[mAudioIndex]->front();
+
+        for(int i=0;i<=audioStream&&!mAudioPacktListVec[i]->empty();++i)mAudioPacktListVec[i]->pop_front();
 //qDebug()<<__FUNCTION__<<mAudioPacktList.size();
         mConditon_Audio->Unlock();
 
         AVPacket *pkt = &packet;
+
+        //pkt->stream_index=0;
 
         /* if update, update the audio clock w/pts */
         if (pkt->pts != AV_NOPTS_VALUE)
@@ -184,6 +187,10 @@ int VideoPlayer::decodeAudioFrame(bool isBlock)
             if (aFrame_ReSample == nullptr)
             {
                 aFrame_ReSample = av_frame_alloc();
+                if(aFrame_ReSample==nullptr){
+
+                    aFrame_ReSample=nullptr;
+                }
 
                 aFrame_ReSample->format = out_sample_fmt;
                 aFrame_ReSample->channel_layout = out_ch_layout;
