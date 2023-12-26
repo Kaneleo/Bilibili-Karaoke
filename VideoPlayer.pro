@@ -35,6 +35,12 @@ include(module/VideoPlayer/VideoPlayer.pri)
 
 include(module/DragAbleWidget/DragAbleWidget.pri)
 
+
+include(module/QtWebApp/httpserver/httpserver.pri)
+
+OTHER_FILES += src/Web/doc/*
+
+
 SOURCES += \
     src/Widget/SetVideoUrlDialog.cpp \
     src/Widget/mymessagebox_withTitle.cpp \
@@ -44,7 +50,11 @@ SOURCES += \
     src/MainWindow.cpp \
     src/Widget/ShowVideoWidget.cpp \
     src/Widget/VideoSlider.cpp \
-    src/thread/myThread.cpp
+    src/thread/myThread.cpp \
+        src/Web/global.cpp \
+        src/Web/requestmapper.cpp \
+        src/Web/Controller/dumpcontroller.cpp \
+        src/Web/Controller/formcontroller.cpp
 
 HEADERS  += \
     src/AppConfig.h \
@@ -54,7 +64,11 @@ HEADERS  += \
     src/Widget/ShowVideoWidget.h \
     src/Widget/VideoSlider.h \
     src/Widget/mymessagebox_withTitle.h \
-    src/thread/myThread.h
+    src/thread/myThread.h \
+    src/Web/global.h \
+    src/Web/requestmapper.h \
+    src/Web/Controller/dumpcontroller.h \
+    src/Web/Controller/formcontroller.h
 
 
 FORMS    += \
