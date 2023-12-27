@@ -129,8 +129,8 @@ private:
     bool mIsAudioThreadFinished; //音频播放线程
 
     ///音视频同步相关
-    uint64_t mVideoStartTime; //开始播放视频的时间
-    uint64_t mPauseStartTime; //暂停开始的时间
+    int64_t mVideoStartTime; //开始播放视频的时间
+    int64_t mPauseStartTime; //暂停开始的时间
     double audio_clock; ///音频时钟
     double video_clock; ///<pts of last decoded frame / predicted pts of next decoded frame
     AVStream *mVideoStream; //视频流
@@ -158,8 +158,8 @@ private:
     int out_sample_rate;//输出的采样率
     int audio_tgt_channels; ///av_get_channel_layout_nb_channels(out_ch_layout);
     int out_ch_layout;
-    unsigned int audio_buf_size;
-    unsigned int audio_buf_index;
+    unsigned int audio_buf_size=0;
+    unsigned int audio_buf_index=0;
     DECLARE_ALIGNED(16,uint8_t,audio_buf) [AVCODEC_MAX_AUDIO_FRAME_SIZE * 4];
 
     int autorotate = 1;

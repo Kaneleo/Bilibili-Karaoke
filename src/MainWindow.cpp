@@ -60,23 +60,25 @@ MainWindow::MainWindow(QWidget *parent) :
     mEditVideoAction             = new QAction(QIcon("images/open.png"), QStringLiteral("修改数据"), this);
     mDeleteVideoAction           = new QAction(QIcon("images/open.png"), QStringLiteral("删除"), this);
     mClearVideoAction            = new QAction(QIcon("images/open.png"), QStringLiteral("清空"), this);
-    mChangeVocalAction            = new QAction(QIcon("images/open.png"), QStringLiteral("切换原唱伴唱"), this);
-
+    mChangeVocalAction           = new QAction(QIcon("images/open.png"), QStringLiteral("切换原唱伴唱"), this);
+    mSwitchToNextAction           = new QAction(QIcon("images/open.png"), QStringLiteral("下一首"), this);
     mPopMenu->addAction(mAddVideoAction);
 //    mPopMenu->addAction(mEditVideoAction);
 //    mPopMenu->addSeparator();       //添加分离器
     mPopMenu->addAction(mDeleteVideoAction);
     mPopMenu->addAction(mClearVideoAction);
     mPopMenu->addAction(mChangeVocalAction);
+    mPopMenu->addAction(mSwitchToNextAction);
 
     connect(this,SIGNAL(sig_download(QString)),myObject,SLOT(addurl(QString)),Qt::DirectConnection);
     connect(myObject,SIGNAL(sig_downloadCmd_finished()),this,SLOT(close_downloadCmd()));
 
     connect(mAddVideoAction,     &QAction::triggered, this, &MainWindow::slotActionClick);
-    connect(mEditVideoAction,    &QAction::triggered, this, &MainWindow::slotActionClick);
+    //connect(mEditVideoAction,    &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mDeleteVideoAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mClearVideoAction,   &QAction::triggered, this, &MainWindow::slotActionClick);
-    connect(mChangeVocalAction,     &QAction::triggered, this, &MainWindow::slotActionClick);
+    connect(mChangeVocalAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
+    connect(mSwitchToNextAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
 
     connect(ui->pushButton_open, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
     connect(ui->toolButton_open, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
@@ -371,18 +373,18 @@ void MainWindow::slotTimerTimeOut()
 
         ui->horizontalSlider->setValue(Sec);
 
-		QString curTime;
-		QString hStr = QString("0%1").arg(Sec / 3600);
-		QString mStr = QString("0%1").arg(Sec / 60 % 60);
-		QString sStr = QString("0%1").arg(Sec % 60);
-		if (hStr == "00")
-		{
-			curTime = QString("%1:%2").arg(mStr.right(2)).arg(sStr.right(2));
-		}
-		else
-		{
-			curTime = QString("%1:%2:%3").arg(hStr).arg(mStr.right(2)).arg(sStr.right(2));
-		}
+        QString curTime;
+        QString hStr = QString("0%1").arg(Sec / 3600);
+        QString mStr = QString("0%1").arg(Sec / 60 % 60);
+        QString sStr = QString("0%1").arg(Sec % 60);
+        if (hStr == "00")
+        {
+            curTime = QString("%1:%2").arg(mStr.right(2)).arg(sStr.right(2));
+        }
+        else
+        {
+            curTime = QString("%1:%2:%3").arg(hStr).arg(mStr.right(2)).arg(sStr.right(2));
+        }
 
         ui->label_currenttime->setText(curTime);
     }
@@ -484,13 +486,13 @@ void MainWindow::doAddStream()
     if (dialog.exec() == QDialog::Accepted)
     {
         QString s = dialog.getVideoUrl();
-		
-		doAddUrl(s);
+
+        doAddUrl(s);
     }
 }
 
 void MainWindow::doAddUrl(QString s){
-	        if (!s.isEmpty())
+            if (!s.isEmpty())
         {
             // mIsNeedPlayNext = false;
             //mPlayer->stop(true); //如果在播放则先停止
@@ -521,7 +523,7 @@ void MainWindow::doAddUrl(QString s){
                 }
             }
         }
-	
+
 }
 
 void MainWindow::doDelete()
@@ -657,6 +659,22 @@ void MainWindow::doChangeVocal(){
 
 }
 
+void MainWindow::doSwitchToNext(){
+//    if (mCurrentItem != nullptr)
+//    {
+//        mCurrentItem->setBackgroundColor(QColor(0, 0, 0, 0));
+//    }
+
+    //mCurrentItem = nullptr;
+
+    //mIsNeedPlayNext = false;
+    mPlayer->stop(true);
+
+     mPlayer->play();
+}
+
+
+
 
 void MainWindow::slotBtnClick(bool isChecked)
 {
@@ -778,6 +796,11 @@ void MainWindow::slotActionClick()
     {
         doChangeVocal();
     }
+    else if (QObject::sender() == mSwitchToNextAction)
+    {
+        doSwitchToNext();
+    }
+
 }
 
 ///打开文件失败
@@ -807,18 +830,18 @@ void MainWindow::onTotalTimeChanged(const int64_t &uSec)
 
         ui->horizontalSlider->setRange(0,Sec);
 
-		QString totalTime;
-		QString hStr = QString("0%1").arg(Sec/3600);
-		QString mStr = QString("0%1").arg(Sec / 60 % 60);
-		QString sStr = QString("0%1").arg(Sec % 60);
-		if (hStr == "00")
-		{
-			totalTime = QString("%1:%2").arg(mStr.right(2)).arg(sStr.right(2));
-		}
-		else
-		{
-			totalTime = QString("%1:%2:%3").arg(hStr).arg(mStr.right(2)).arg(sStr.right(2));
-		}
+        QString totalTime;
+        QString hStr = QString("0%1").arg(Sec/3600);
+        QString mStr = QString("0%1").arg(Sec / 60 % 60);
+        QString sStr = QString("0%1").arg(Sec % 60);
+        if (hStr == "00")
+        {
+            totalTime = QString("%1:%2").arg(mStr.right(2)).arg(sStr.right(2));
+        }
+        else
+        {
+            totalTime = QString("%1:%2:%3").arg(hStr).arg(mStr.right(2)).arg(sStr.right(2));
+        }
 
         ui->label_totaltime->setText(totalTime);
     });

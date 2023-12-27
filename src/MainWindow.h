@@ -80,6 +80,7 @@ private:
     QAction *mDeleteVideoAction;
     QAction *mClearVideoAction;
     QAction *mChangeVocalAction;
+    QAction *mSwitchToNextAction;
 
 
     void setDownloadingFlag(BOOL flag);
@@ -91,6 +92,7 @@ private:
     bool doDeleteFile(const QString &strPath);
     void doClear();
     void doChangeVocal();
+    void doSwitchToNext();
 
 
     void setVideoNums(const int &nums);
