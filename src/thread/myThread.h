@@ -18,13 +18,13 @@ private:
     QString FolderPath;
     QQueue<QString> q;
 signals:
-    void download_start();
-    void sig_downloadCmd_finished();
+    void download_start(int dp);
+    void sig_downloadCmd_finished(QString filepath);
 public slots:
     void setFlag(bool flag = false);
     void display();
-    void addurl(QString s);
-    void downloadCmd();
+    void addurl(QString s,int defaultP);
+    void downloadCmd(int dp=0);
 
 };
 

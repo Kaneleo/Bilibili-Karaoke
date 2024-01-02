@@ -70,8 +70,8 @@ MainWindow::MainWindow(QWidget *parent) :
     mPopMenu->addAction(mChangeVocalAction);
     mPopMenu->addAction(mSwitchToNextAction);
 
-    connect(this,SIGNAL(sig_download(QString)),myObject,SLOT(addurl(QString)),Qt::DirectConnection);
-    connect(myObject,SIGNAL(sig_downloadCmd_finished()),this,SLOT(close_downloadCmd()));
+    connect(this,SIGNAL(sig_download(QString,int)),myObject,SLOT(addurl(QString,int)),Qt::DirectConnection);
+    connect(myObject,SIGNAL(sig_downloadCmd_finished(QString)),this,SLOT(close_downloadCmd(QString)));
 
     connect(mAddVideoAction,     &QAction::triggered, this, &MainWindow::slotActionClick);
     //connect(mEditVideoAction,    &QAction::triggered, this, &MainWindow::slotActionClick);
@@ -87,6 +87,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pushButton_pause,&QPushButton::clicked, this, &MainWindow::slotBtnClick);
     connect(ui->pushButton_stop, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
     connect(ui->pushButton_volume, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
+
+
+
 
     connect(ui->horizontalSlider, SIGNAL(sig_valueChanged(int)), this, SLOT(slotSliderMoved(int)));
     connect(ui->horizontalSlider_volume, SIGNAL(valueChanged(int)), this, SLOT(slotSliderMoved(int)));
@@ -114,13 +117,13 @@ MainWindow::MainWindow(QWidget *parent) :
     mTimer->setInterval(500);
 
 
-    mCheckFilesTimer = new QTimer;
-    connect(mCheckFilesTimer, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
-    setFolderPath(QDir::currentPath()+"/Downloads");
-    mCheckFilesTimer->start(500);
+//    mCheckFilesTimer = new QTimer;
+//    connect(mCheckFilesTimer, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
+//    setFolderPath(QDir::currentPath()+"/Downloads");
+//    mCheckFilesTimer->start(500);
 
-    mChangeTimer = new QTimer;
-    connect(mChangeTimer, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
+//    mChangeTimer = new QTimer;
+//    connect(mChangeTimer, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
     //mChangeTimer->start(5000);
 
     mTimer_CheckControlWidget = new QTimer; //用于控制控制界面的出现和隐藏
@@ -293,6 +296,10 @@ void MainWindow::setDownloadThread(myThread *myObject1){
     myObject=myObject1;
 }
 
+void MainWindow::setDownloadP(int defaultP){
+    mDefaultP=defaultP;
+}
+
 void MainWindow::stopPlay()
 {
     if (mCurrentItem != nullptr)
@@ -398,54 +405,54 @@ void MainWindow::slotTimerTimeOut()
 
     else if (QObject::sender() == mCheckFilesTimer){
 
-        if (!mFolderPath.isEmpty()){
-            // 获取所有文件名
-            QStringList fileList;
-            QDir dir(mFolderPath);
-            QStringList mImgNames;
-            QString newFileName;
-            mFolderPath = dir.fromNativeSeparators(mFolderPath);//  "\\"转为"/"
-            if (!dir.exists()) dir.mkdir(mFolderPath);
-            dir.setFilter(QDir::Files);
-            dir.setSorting(QDir::Name);
-            dir.setNameFilters(QString("*.mp4").split(";"));
-            mImgNames = dir.entryList();
+//        if (!mFolderPath.isEmpty()){
+//            // 获取所有文件名
+//            QStringList fileList;
+//            QDir dir(mFolderPath);
+//            QStringList mImgNames;
+//            QString newFileName;
+//            mFolderPath = dir.fromNativeSeparators(mFolderPath);//  "\\"转为"/"
+//            if (!dir.exists()) dir.mkdir(mFolderPath);
+//            dir.setFilter(QDir::Files);
+//            dir.setSorting(QDir::Name);
+//            dir.setNameFilters(QString("*.mp4").split(";"));
+//            mImgNames = dir.entryList();
 
-            if(mImgNames.size()>mVideoFileListLocal.size()){
-                //添加文件
-                for (int i = 0; i < mImgNames.size(); ++i)
-                {
-                     newFileName= mFolderPath + "/" +mImgNames[i];
-                     if(mVideoFileListLocal.indexOf(newFileName)==-1){
-                         fileList.append(newFileName);
-                         mVideoFileListLocal.append(newFileName);
-                     }
-                }
-                addVideoFiles(fileList);
-            }
-            else if(mImgNames.size()<mVideoFileListLocal.size()){
-                for (int j = 0; j < mVideoFileListLocal.size(); ++j)
-                {
-                     newFileName= mVideoFileListLocal.at(j);
-                     QFileInfo fileI2nfo(newFileName);
-                     if(mImgNames.indexOf(fileI2nfo.fileName())==-1){
+//            if(mImgNames.size()>mVideoFileListLocal.size()){
+//                //添加文件
+//                for (int i = 0; i < mImgNames.size(); ++i)
+//                {
+//                     newFileName= mFolderPath + "/" +mImgNames[i];
+//                     if(mVideoFileListLocal.indexOf(newFileName)==-1){
+//                         fileList.append(newFileName);
+//                         mVideoFileListLocal.append(newFileName);
+//                     }
+//                }
+//                addVideoFiles(fileList);
+//            }
+//            else if(mImgNames.size()<mVideoFileListLocal.size()){
+//                for (int j = 0; j < mVideoFileListLocal.size(); ++j)
+//                {
+//                     newFileName= mVideoFileListLocal.at(j);
+//                     QFileInfo fileI2nfo(newFileName);
+//                     if(mImgNames.indexOf(fileI2nfo.fileName())==-1){
 
-                         //mVideoFileList.removeAt(j);
-                         mVideoFileListLocal.removeAt(j);
+//                         //mVideoFileList.removeAt(j);
+//                         mVideoFileListLocal.removeAt(j);
 
-                         for(int mVideoFileListIndex=0; mVideoFileListIndex<mVideoFileList.size();++mVideoFileListIndex){
-                             if(newFileName==mVideoFileList.at(mVideoFileListIndex)){
-                                 mVideoFileList.removeAt(mVideoFileListIndex);
-                                 ui->listWidget->takeItem(mVideoFileListIndex);
-                                 --mVideoFileListIndex;
-                             }
-                         }
-                         break;
-                     }
-                }
-                    setVideoNums(mVideoFileList.size());
-            }
-        }
+//                         for(int mVideoFileListIndex=0; mVideoFileListIndex<mVideoFileList.size();++mVideoFileListIndex){
+//                             if(newFileName==mVideoFileList.at(mVideoFileListIndex)){
+//                                 mVideoFileList.removeAt(mVideoFileListIndex);
+//                                 ui->listWidget->takeItem(mVideoFileListIndex);
+//                                 --mVideoFileListIndex;
+//                             }
+//                         }
+//                         break;
+//                     }
+//                }
+//                    setVideoNums(mVideoFileList.size());
+//            }
+//        }
     }
     else if (QObject::sender() == mChangeTimer){
         mPlayer->setAudioIndex(rand()%3);
@@ -486,12 +493,14 @@ void MainWindow::doAddStream()
     if (dialog.exec() == QDialog::Accepted)
     {
         QString s = dialog.getVideoUrl();
+        int defaultp=dialog.getDefaultP();
+        //setDownloadP(dialog.getDefaultP());
 
-        doAddUrl(s);
+        doAddUrl(s,defaultp);
     }
 }
 
-void MainWindow::doAddUrl(QString s){
+void MainWindow::doAddUrl(QString s,int defaultp){
             if (!s.isEmpty())
         {
             // mIsNeedPlayNext = false;
@@ -516,7 +525,7 @@ void MainWindow::doAddUrl(QString s){
                     if(!newThread->isRunning())
                         newThread->start();
                     qDebug()<<"Downloading"<<endl;
-                    emit sig_download(s);
+                    emit sig_download(s,defaultp);
 
                     AppConfig::gVideoFilePath = s;
                     //AppConfig::saveConfigInfoToFile();
@@ -960,7 +969,7 @@ bool MainWindow::eventFilter(QObject *target, QEvent *event)
     return DragAbleWidget::eventFilter(target, event);
 }
 
-void MainWindow::close_downloadCmd(){
+void MainWindow::close_downloadCmd(QString filepath){
     if(newThread->isRunning())
        {
            newThread->quit();
@@ -968,6 +977,11 @@ void MainWindow::close_downloadCmd(){
        }
 
     setDownloadingFlag(false);
+    addVideoFile(filepath);
 
       qDebug()<<QThread::currentThreadId()<<"recv work stop signal"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+}
+
+void MainWindow::slotSetP(int PIndex){
+    mDefaultP = PIndex;
 }

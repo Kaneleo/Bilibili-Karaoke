@@ -1,9 +1,17 @@
-#include "SetVideoUrlDialog.h"
+﻿#include "SetVideoUrlDialog.h"
 #include "ui_SetVideoUrlDialog.h"
 
 #include <QFileDialog>
 
 #include "AppConfig.h"
+#include <QMenu>
+#include <QDebug>
+
+#define MaxP 4
+
+QVector<QString> PDef;
+QAction* mParray[MaxP];
+
 
 SetVideoUrlDialog::SetVideoUrlDialog(QWidget *parent) :
     QDialog(parent),
@@ -11,7 +19,48 @@ SetVideoUrlDialog::SetVideoUrlDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->pushButton_selectFile,   &QPushButton::clicked, this, &SetVideoUrlDialog::slotBtnClick);
+    QMenu *menuSelection = new QMenu(this);
+
+
+    PDef.push_back("1080p");
+    PDef.push_back("720p");
+    PDef.push_back("480p");
+    PDef.push_back("320p");
+
+
+    for(int i=0;i<MaxP;++i){
+        mParray[i] = new QAction(PDef.at(i), this);
+        menuSelection->addAction(mParray[i]);
+        connect(mParray[i],  &QAction::triggered, this, &SetVideoUrlDialog::slotBtnClick);
+    }
+
+//   QAction* mP1080            = new QAction(QStringLiteral("1080p"), this);
+//   QAction* mP720             = new QAction(QStringLiteral("720p"), this);
+//   QAction* mP480             = new QAction(QStringLiteral("480p"), this);
+//   QAction* mP320             = new QAction(QStringLiteral("320p"), this);
+
+
+//        menuSelection->addAction(mP1080);
+//        menuSelection->addAction(mP720);
+//        menuSelection->addAction(mP480);
+//        menuSelection->addAction(mP320);
+
+        //设置弹出菜单的样式QToolButton::MenuButtonPopup
+        ui->toolButton->setPopupMode(QToolButton::MenuButtonPopup);
+        //设置按钮样式
+        ui->toolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        //为按钮设置默认Action
+        ui->toolButton->setDefaultAction(mParray[0]);
+        //为按钮设置下拉菜单
+        ui->toolButton->setMenu(menuSelection);
+
+
+            connect(ui->pushButton_selectFile,   &QPushButton::clicked, this, &SetVideoUrlDialog::slotBtnClick);
+//    connect(mP1080,  &QAction::triggered, this, &SetVideoUrlDialog::slotBtnClick);
+//        connect(mP720,  &QAction::triggered, this, &SetVideoUrlDialog::slotBtnClick);
+//            connect(mP480,  &QAction::triggered, this, &SetVideoUrlDialog::slotBtnClick);
+//                connect(mP320,  &QAction::triggered, this, &SetVideoUrlDialog::slotBtnClick);
+
 
 }
 
@@ -31,6 +80,14 @@ QString SetVideoUrlDialog::getVideoUrl()
     return url;
 }
 
+void SetVideoUrlDialog::setDownloadP(int defaultP){
+    mDefaultP=defaultP;
+}
+
+int SetVideoUrlDialog::getDefaultP(){
+    return mDefaultP;
+}
+
 void SetVideoUrlDialog::slotBtnClick(bool isChecked)
 {
     if (QObject::sender() == ui->pushButton_selectFile)
@@ -44,6 +101,18 @@ void SetVideoUrlDialog::slotBtnClick(bool isChecked)
         if (!s.isEmpty())
         {
             ui->lineEdit_fileUrl->setText(s);
+        }
+    }
+
+    for(int i=0;i<MaxP;i++){
+
+        if (QObject::sender() == mParray[i])
+        {
+            ui->toolButton->setDefaultAction(mParray[i]);
+            setDownloadP(i);
+            //emit sig_defaultP(i);
+            qDebug()<<"mParray:"<<mParray[i]<<endl;
+            break;
         }
     }
 }

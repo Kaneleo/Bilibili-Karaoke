@@ -61,8 +61,8 @@ bool VideoPlayer::startPlay(const std::string &filePath)
     //ylw
     seek_flag_audio = 0;
     seek_flag_video = 0;
-    videoStream = -1;
-    audioStream = -1;
+    videoStream.clear();
+    audioStream.clear();
 
 //    clearAudiolists(); //释放音频队列空间
 //    clearVideoQuene();
@@ -311,11 +311,11 @@ void VideoPlayer::readVideoFile()
     {
         if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
         {
-            videoStream++;
+            videoStream.push_back(i);
         }        
         if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) //ylw
         {
-            audioStream++;
+            audioStream.push_back(i);
             mAudioPacktListVec.push_back(new std::list<AVPacket>);
         }
     }
@@ -323,10 +323,10 @@ void VideoPlayer::readVideoFile()
     doTotalTimeChanged(getTotalTime());
 
     ///打开视频解码器，并启动视频线程
-    if (videoStream >= 0)
+    if (videoStream.size()> 0)
     {
         ///查找视频解码器
-        pCodecCtx = pFormatCtx->streams[videoStream]->codec;
+        pCodecCtx = pFormatCtx->streams[videoStream[0]]->codec;
         pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
 
         if (pCodec == nullptr)
@@ -344,7 +344,7 @@ void VideoPlayer::readVideoFile()
             goto end;
         }
 
-        mVideoStream = pFormatCtx->streams[videoStream];
+        mVideoStream = pFormatCtx->streams[videoStream[0]];
 
         ///创建一个线程专门用来解码视频
         std::thread([&](VideoPlayer *pointer)
@@ -355,16 +355,16 @@ void VideoPlayer::readVideoFile()
 
     }
 
-    if (audioStream >= 0)
+    if (audioStream.size() > 0)
     {
         ///查找音频解码器
-        aCodecCtx = pFormatCtx->streams[audioStream+(videoStream+1)]->codec;
+        aCodecCtx = pFormatCtx->streams[audioStream[0]]->codec;
         aCodec = avcodec_find_decoder(aCodecCtx->codec_id);
 
         if (aCodec == NULL)
         {
             fprintf(stderr, "ACodec not found.\n");
-            audioStream = -1;
+            audioStream.clear();
         }
         else
         {
@@ -449,7 +449,7 @@ void VideoPlayer::readVideoFile()
             out_linesize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
 
-            mAudioStream = pFormatCtx->streams[audioStream+(videoStream+1)];
+            mAudioStream = pFormatCtx->streams[audioStream[0]];
 
             ///打开SDL播放声音
             int code = openSDL();
@@ -490,10 +490,10 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
             int stream_index = -1;
             int64_t seek_target = seek_pos;
 
-            if (videoStream >= 0)
-                stream_index = videoStream;
-            else if (audioStream >= 0)
-                stream_index = mAudioIndex+videoStream+1;
+            if (videoStream.size()>0)
+                stream_index = videoStream[0];
+            else if (audioStream.size()>0)
+                stream_index = audioStream[mAudioIndex];
 
             AVRational aVRational = {1, AV_TIME_BASE};
             if (stream_index >= 0)
@@ -507,17 +507,17 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
             }
             else
             {
-                if (audioStream >= 0)
+                if (audioStream.size()> 0)
                 {
                     AVPacket packet;
                     av_new_packet(&packet, 10);
                     strcpy((char*)packet.data,FLUSH_DATA);
                     clearAudioQuene(); //清除队列
-                    for(int i3=0;i3<=audioStream;++i3)
+                    for(int i3=0;i3<audioStream.size();++i3)
                         inputAudioQuene(packet,i3); //往队列中存入用来清除的包
                 }
 
-                if (videoStream >= 0)
+                if (videoStream.size()> 0)
                 {
                     AVPacket packet;
                     av_new_packet(&packet, 10);
@@ -548,7 +548,7 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
         //ylw
 
         int maxBuffer=0;
-        for(int i2=0;i2<=audioStream;++i2){
+        for(int i2=0;i2<audioStream.size();++i2){
             if (mAudioPacktListVec[i2]->size() > MAX_AUDIO_SIZE || mVideoPacktList.size() > MAX_VIDEO_SIZE)
             {
                 mSleep(10);
@@ -584,7 +584,7 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
             continue;
         }
 
-        if (packet.stream_index == videoStream)
+        if (packet.stream_index == videoStream[0])
         {
             inputVideoQuene(packet);
             //这里我们将数据存入队列 因此不调用 av_free_packet 释放
@@ -597,7 +597,7 @@ fprintf(stderr, "%s mIsQuit=%d mIsPause=%d \n", __FUNCTION__, mIsQuit, mIsPause)
             }
             else
             {
-                inputAudioQuene(packet, packet.stream_index-(videoStream+1));
+                inputAudioQuene(packet, audioStream.indexOf(packet.stream_index));
                 //这里我们将数据存入队列 因此不调用 av_free_packet 释放
             }
 //ylw change vocal and instrument
@@ -733,7 +733,7 @@ bool VideoPlayer::inputAudioQuene(const AVPacket &pkt, int stream_index)
 
 void VideoPlayer::clearAudiolists(){
     mConditon_Audio->Lock();
-    for(int i=0;i<=audioStream;i++){
+    for(int i=0;i<audioStream.size();i++){
         for (AVPacket pkt : *mAudioPacktListVec[i])
         {
     //        av_free_packet(&pkt);
@@ -749,7 +749,7 @@ void VideoPlayer::clearAudiolists(){
 void VideoPlayer::clearAudioQuene()
 {
     mConditon_Audio->Lock();
-    for(int i=0;i<=audioStream;i++){
+    for(int i=0;i<audioStream.size();i++){
         for (AVPacket pkt : *mAudioPacktListVec[i])
         {
     //        av_free_packet(&pkt);

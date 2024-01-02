@@ -9,7 +9,7 @@
 
 myThread::myThread(QObject *parent) : QObject(parent)
 {
-    connect(this,SIGNAL(download_start()),this,SLOT(downloadCmd()));
+    connect(this,SIGNAL(download_start(int)),this,SLOT(downloadCmd(int)));
 }
 void myThread::display()
 {
@@ -30,7 +30,7 @@ void myThread::setPath(QString folderPath)
     FolderPath=folderPath;
 }
 
-void myThread::addurl(QString s){
+void myThread::addurl(QString s,int defaultP){
     qDebug() << "addurl " << endl;
     q.enqueue(s);
 
@@ -40,11 +40,11 @@ void myThread::addurl(QString s){
 //        QThread::msleep(5000);
 //        qDebug() << "thread exit" << endl;
 //        downloadingFlag=false;
-        emit download_start();
+        emit download_start(defaultP);
     }
 }
 
-void myThread::downloadCmd(){
+void myThread::downloadCmd(int defaultP){
 
     while(!q.isEmpty())
     {
@@ -61,13 +61,20 @@ void myThread::downloadCmd(){
     QFile downloadCmdFile(downloadCmdFilePath);
 
     downloadCmdFile.open(QIODevice::ReadWrite);
-    //downloadCmdFile.write("@echo off");
-    //downloadCmdFile.write("\nlux.exe -c bilibili_cookie.txt");
-    downloadCmdFile.write("\nlux.exe ");
+    downloadCmdFile.write("@echo off");
+    downloadCmdFile.write("\nlux.exe -c bilibili_cookie.txt");
+    //downloadCmdFile.write("\nlux.exe ");
     downloadCmdFile.write(" -o Downloads/D-");
     downloadCmdFile.write(strTime.toStdString().c_str());
     downloadCmdFile.write(" ");
-    //downloadCmdFile.write(" -f 80-7 ");
+    switch(defaultP){
+    case 0: downloadCmdFile.write(" -f 80-7 ");break;
+    case 1: downloadCmdFile.write(" -f 64-7 ");break;
+    case 2: downloadCmdFile.write(" -f 32-7 ");break;
+    case 3: downloadCmdFile.write(" -f 16-7 ");break;
+    default: qDebug()<<"Unsupport P"<<endl;
+    }
+
     downloadCmdFile.write(s.toStdString().c_str());
 
     downloadCmdFile.write("\ncd Downloads/D-");
@@ -132,6 +139,7 @@ void myThread::downloadCmd(){
         {
             WaitForSingleObject(pi.hProcess, 300*1000);
             DWORD t2 = GetTickCount();
+            QString filename;
             if (GetExitCodeProcess(pi.hProcess, &dwExitCode))
             {
                  qDebug() << dwExitCode << endl;
@@ -145,6 +153,20 @@ void myThread::downloadCmd(){
                     //emit fail
 
                 }
+
+                QFile downloadFilename(DirPath+"/name1.txt");
+
+
+                downloadFilename.open(QIODevice::ReadOnly);
+                filename=QString::fromLocal8Bit(downloadFilename.readLine().trimmed());
+
+                //std::string test=filename.toStdString();
+
+                //test="";
+
+                qDebug()<<"filename: "<<filename<<endl;
+
+                downloadFilename.close();
                 dir.removeRecursively();
             }
              qDebug() << "convert consume " << t2 - t1 << "ms" << endl;
@@ -153,7 +175,7 @@ void myThread::downloadCmd(){
             if(q.isEmpty()){
                 qDebug() << "thread exit" << endl;
                 downloadingFlag=false;
-                emit sig_downloadCmd_finished();
+                emit sig_downloadCmd_finished(FolderPath+"/"+filename);
                 break;
             }
         }

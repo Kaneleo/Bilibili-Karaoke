@@ -25,7 +25,7 @@ FormController::FormController()
     myObject->setPath(QDir::currentPath()+"/Downloads");
     myObject->moveToThread(newThread);
     connect(this,SIGNAL(add_url(QString)),myObject,SLOT(addurl(QString)),Qt::DirectConnection);
-    connect(myObject,SIGNAL(sig_downloadCmd_finished()),this,SLOT(close_download_web_thread()));
+    connect(myObject,SIGNAL(sig_downloadCmd_finished(QString)),this,SLOT(close_download_web_thread(QString)));
 }
 
 void FormController::service(HttpRequest& request, HttpResponse& response)
@@ -83,7 +83,7 @@ void FormController::service(HttpRequest& request, HttpResponse& response)
 }
 
 
-void FormController::close_download_web_thread(){
+void FormController::close_download_web_thread(QString filename){
     if(newThread->isRunning())
        {
            newThread->quit();

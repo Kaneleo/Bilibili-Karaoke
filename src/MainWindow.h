@@ -44,6 +44,7 @@ public:
     void stopPlay();
     void setFolderPath(const QString FolderPath);
     void setDownloadThread(myThread *myObject1);
+    void setDownloadP(int defaultP);
     BOOL getDownloadingFlag();
 
 protected:
@@ -52,6 +53,8 @@ protected:
 
 private:
     Ui::MainWindow *ui;
+
+    int mDefaultP=0;
 
     BOOL mDownloadingFlag;
 
@@ -87,7 +90,7 @@ private:
 
     void doAdd();
     void doAddStream();
-	void doAddUrl(QString s);
+    void doAddUrl(QString s,int defaultp);
     void doDelete();
     bool doDeleteFile(const QString &strPath);
     void doClear();
@@ -108,7 +111,7 @@ private:
     void playVideo(const int &index);
     void playVideoFile(const QString &filePath);
 signals:
-        void sig_download(QString s);
+        void sig_download(QString s,int dp);
 
 private slots:
     ///播放器相关的槽函数
@@ -119,7 +122,9 @@ private slots:
 
     void slotCustomContextMenuRequested();
     void slotActionClick();
-    void close_downloadCmd();
+    void close_downloadCmd(QString filepath);
+
+    void slotSetP(int PIndex);
 
 
     ///以下函数，是播放器的回调函数，用于输出信息给界面

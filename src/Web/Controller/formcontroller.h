@@ -41,7 +41,7 @@ private:
 signals:
         void add_url(QString url);
 private slots:
-        void close_download_web_thread();
+        void close_download_web_thread(QString filename);
 };
 
 #endif // FORMCONTROLLER_H

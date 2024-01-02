@@ -108,7 +108,7 @@ private:
     bool  mIsMute;
     float mVolume; //音量 0~1 超过1 表示放大倍数
 
-    int audioStream,videoStream;
+    QVector<int> audioStream,videoStream;
 
     int mAudioIndex=0; //默认音轨0，定义为原唱
 

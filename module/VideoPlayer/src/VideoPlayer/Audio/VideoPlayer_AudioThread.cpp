@@ -117,7 +117,7 @@ int VideoPlayer::decodeAudioFrame(bool isBlock)
 
         AVPacket packet = mAudioPacktListVec[mAudioIndex]->front();
 
-        for(int i=0;i<=audioStream&&!mAudioPacktListVec[i]->empty();++i)mAudioPacktListVec[i]->pop_front();
+        for(int i=0;i<audioStream.size()&&!mAudioPacktListVec[i]->empty();++i)mAudioPacktListVec[i]->pop_front();
 //qDebug()<<__FUNCTION__<<mAudioPacktList.size();
         mConditon_Audio->Unlock();
 
