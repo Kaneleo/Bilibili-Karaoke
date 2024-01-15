@@ -83,6 +83,7 @@ public:
     void seek(int64_t pos); //单位是微秒
 
     void setMute(bool isMute){mIsMute = isMute;}
+    bool getMute(){return mIsMute;}
     void setAudioIndex(int audioIndex);
     int getAudioIndex(){return mAudioIndex;}
     void setVolume(float value);
@@ -90,6 +91,7 @@ public:
 
     int64_t getTotalTime(); //单位微秒
     double getCurrentTime(); //单位秒
+    VideoPlayerState getPlayerState(){return mPlayerState;}
 
 protected:
     void readVideoFile(); //读取视频文件

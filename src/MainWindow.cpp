@@ -24,9 +24,11 @@
 
 #include <windows.h>
 #include <QFile>
-#include "Web/Controller/formcontroller.h"
+#include "src/Web/Controller/downloadcontroller.h"
 #include <QFileDialog>
+#include "src/Web/requestmapper.h"
 
+extern RequestMapper *newRequestMapper;
 
 
 Q_DECLARE_METATYPE(VideoPlayerState)
@@ -72,6 +74,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(this,SIGNAL(sig_download(QString,int)),myObject,SLOT(addurl(QString,int)),Qt::DirectConnection);
     connect(myObject,SIGNAL(sig_downloadCmd_finished(QString)),this,SLOT(close_downloadCmd(QString)));
+    connect(newRequestMapper->mDownloadController,SIGNAL(add_file(QString)),this,SLOT(addFileFromWeb(QString)));
+
+    connect(newRequestMapper->mPlayController,SIGNAL(web_resume_sig()),this,SLOT(web_resume_slot()));
+    connect(newRequestMapper->mPlayController,SIGNAL(web_next_sig()),this,SLOT(web_next_slot()));
+    connect(newRequestMapper->mPlayController,SIGNAL(web_mute_sig()),this,SLOT(web_mute_slot()));
 
     connect(mAddVideoAction,     &QAction::triggered, this, &MainWindow::slotActionClick);
     //connect(mEditVideoAction,    &QAction::triggered, this, &MainWindow::slotActionClick);
@@ -87,7 +94,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pushButton_pause,&QPushButton::clicked, this, &MainWindow::slotBtnClick);
     connect(ui->pushButton_stop, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
     connect(ui->pushButton_volume, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
-
 
 
 
@@ -679,7 +685,7 @@ void MainWindow::doSwitchToNext(){
     //mIsNeedPlayNext = false;
     mPlayer->stop(true);
 
-     mPlayer->play();
+    mPlayer->play();
 }
 
 
@@ -979,9 +985,52 @@ void MainWindow::close_downloadCmd(QString filepath){
     setDownloadingFlag(false);
     addVideoFile(filepath);
 
-      qDebug()<<QThread::currentThreadId()<<"recv work stop signal"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+      qDebug()<<QThread::currentThreadId()<<"recv work stop signal"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")<<endl;
+      qDebug()<<filepath<<endl;
 }
 
 void MainWindow::slotSetP(int PIndex){
     mDefaultP = PIndex;
+}
+
+void MainWindow::addFileFromWeb(QString filepath){
+    addVideoFile(filepath);
+}
+
+void MainWindow::web_resume_slot(){
+    if (mPlayer->getPlayerState() == VideoPlayer_Playing)
+    {
+        mPlayer->pause();
+    }
+    else if(mPlayer->getPlayerState() == VideoPlayer_Pause)
+    {
+        mPlayer->play();
+    }
+    else qDebug()<<"web_resume_slot error"<<endl;
+}
+
+void MainWindow::web_next_slot(){
+    doSwitchToNext();
+}
+
+void MainWindow::web_mute_slot(){
+    bool ismute=mPlayer->getMute();
+    ismute=!ismute;
+     mPlayer->setMute(ismute);
+
+     if (ismute)
+     {
+         mVolume = mPlayer->getVolume();
+
+         ui->horizontalSlider_volume->setValue(0);
+         ui->horizontalSlider_volume->setEnabled(false);
+         ui->label_volume->setText(QString("%1").arg(0));
+     }
+     else
+     {
+         int volume = mVolume * 100.0;
+         ui->horizontalSlider_volume->setValue(volume);
+         ui->horizontalSlider_volume->setEnabled(true);
+         ui->label_volume->setText(QString("%1").arg(volume));
+     }
 }

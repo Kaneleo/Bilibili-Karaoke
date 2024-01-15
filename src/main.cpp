@@ -17,7 +17,7 @@
 #include "src/Web/global.h".h"
 #include "httplistener.h"
 #include "src/Web/requestmapper.h"
-#include "src/Web/Controller/formcontroller.h"
+#include "src/Web/Controller/DownloadController.h"
 #include "src/thread/myThread.h"
 
 
@@ -25,6 +25,7 @@ using namespace stefanfrings;
 QString searchConfigFile();
 
 QString docrootPath;
+RequestMapper *newRequestMapper;
 
 #undef main
 int main(int argc, char *argv[])
@@ -82,13 +83,14 @@ int main(int argc, char *argv[])
     // Configure and start the TCP listener
     QSettings* listenerSettings=new QSettings(configFileName,QSettings::IniFormat,&a);
     listenerSettings->beginGroup("listener");
-    new HttpListener(listenerSettings,new RequestMapper(&a),&a);
+    newRequestMapper = new RequestMapper(&a);
+    new HttpListener(listenerSettings,newRequestMapper,&a);
     MainWindow w;
 
 
 
-   // w.setDownloadThread(myObject);
-    //newThread->start();
+//    w.setDownloadThread(myObject);
+//    newThread->start();
     w.show();
 
     return a.exec();

@@ -28,6 +28,8 @@ void myThread::setFlag(bool flag)
 void myThread::setPath(QString folderPath)
 {
     FolderPath=folderPath;
+    QDir dir(folderPath);
+    if (!dir.exists()) dir.mkdir(folderPath);
 }
 
 void myThread::addurl(QString s,int defaultP){
@@ -55,7 +57,7 @@ void myThread::downloadCmd(int defaultP){
     QDir dir(DirPath);
     DirPath = dir.fromNativeSeparators(DirPath);//  "\\"转为"/"
 
-     if (!dir.exists()) dir.mkdir(DirPath);
+    if (!dir.exists()) dir.mkdir(DirPath);
 
     QString downloadCmdFilePath(DirPath+QString("/download.cmd"));
     QFile downloadCmdFile(downloadCmdFilePath);

@@ -7,6 +7,12 @@
 
 	<div id="dev2" style="width:100px;float:left;">
 		<textarea id="add_result" rows="5" cols="5">空闲中</textarea>
+                <select id="defaultP">
+                   <option value="1080p" selected>1080p</option>
+                   <option value="720p">720p</option>
+                   <option value="480p">480p</option>
+                   <option value="360p">360p</option>
+                </select>
 		<button type="button" id="submit_btn">添加</button>
 	</div>
 
@@ -21,9 +27,9 @@
 
 
 			var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
-			httpRequest.open('POST', 'form', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+                        httpRequest.open('POST', 'play/mute', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
 			httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
-			var obj = { "inputUrl": inputUrl  };
+                        var obj = { "inputUrl": inputUrl,"defaultP": defaultP.value   };
 			httpRequest.send(JSON.stringify(obj));//发送请求 将json写入send中
 			
 			/**

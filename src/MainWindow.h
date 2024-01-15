@@ -65,7 +65,7 @@ private:
 
     VideoPlayer *mPlayer; //播放线程
     QTimer *mTimer; //定时器-获取当前视频时间
-    float mVolume;
+    float mVolume=100;
 
     QTimer *mCheckFilesTimer;
     QTimer *mChangeTimer;
@@ -125,7 +125,11 @@ private slots:
     void close_downloadCmd(QString filepath);
 
     void slotSetP(int PIndex);
+    void addFileFromWeb(QString filepath);
 
+    void web_resume_slot();
+    void web_next_slot();
+    void web_mute_slot();
 
     ///以下函数，是播放器的回调函数，用于输出信息给界面
 protected:

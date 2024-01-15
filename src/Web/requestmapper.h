@@ -5,7 +5,9 @@
 
 #ifndef REQUESTMAPPER_H
 #define REQUESTMAPPER_H
-#include "controller/formcontroller.h"
+#include "src/Web/Controller/listcontroller.h"
+#include "src/Web/Controller/playcontroller.h"
+#include "src/Web/Controller/downloadcontroller.h"
 #include "httprequesthandler.h"
 
 using namespace stefanfrings;
@@ -20,8 +22,9 @@ class RequestMapper : public HttpRequestHandler {
     Q_DISABLE_COPY(RequestMapper)
 public:
 
-    FormController *formController;
-
+    DownloadController *mDownloadController;
+    ListController *mListController;
+    PlayController *mPlayController;
     /**
       Constructor.
       @param parent Parent object

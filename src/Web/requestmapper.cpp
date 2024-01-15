@@ -8,8 +8,10 @@
 #include "requestmapper.h"
 //#include "filelogger.h"
 #include "staticfilecontroller.h"
-#include "controller/dumpcontroller.h"
-//#include "controller/templatecontroller.h"
+#include "src/Web/Controller/listcontroller.h"
+#include "src/Web/Controller/playcontroller.h"
+#include "src/Web/Controller/downloadcontroller.h"
+//#include "templatecontroller.h"
 
 //#include "controller/fileuploadcontroller.h"
 //#include "controller/sessioncontroller.h"
@@ -19,8 +21,9 @@ RequestMapper::RequestMapper(QObject* parent)
     :HttpRequestHandler(parent)
 {
     qDebug("RequestMapper: created");
-    formController = new FormController();
-
+    mDownloadController = new DownloadController();
+    mListController = new ListController();
+    mPlayController = new PlayController();
 }
 
 
@@ -37,19 +40,25 @@ void RequestMapper::service(HttpRequest& request, HttpResponse& response)
 
     // For the following pathes, each request gets its own new instance of the related controller.
 
-    if (path.startsWith("/dump"))
+    if (path.startsWith("/play"))
     {        
-        DumpController().service(request, response);
+        if (path.startsWith("/play/resume"))
+            mPlayController->resumeService(request, response);
+        else if (path.startsWith("/play/next"))
+            mPlayController->nextService(request, response);
+        else if (path.startsWith("/play/mute"))
+            mPlayController->muteService(request, response);
+        else staticFileController->service(request, response);
     }
 
-//    else if (path.startsWith("/template"))
-//    {
-//        TemplateController().service(request, response);
-//    }
-
-    else if (path.startsWith("/form"))
+    else if (path.startsWith("/list"))
     {
-        formController->service(request, response);
+        mListController->service(request, response);
+    }
+
+    else if (path.startsWith("/download"))
+    {
+        mDownloadController->service(request, response);
     }
 
 //    else if (path.startsWith("/file"))
