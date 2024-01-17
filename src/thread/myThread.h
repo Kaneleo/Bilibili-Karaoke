@@ -5,6 +5,22 @@
 #include <QString.h>
 #include <QQueue>
 extern int counter;
+
+enum DOWNLOAD_FLAG{
+    WAIT=0,
+    DOWNLOADING,
+    SUCCESS,
+    FAILED
+};
+
+typedef struct
+{
+    QString url;
+    int defaultP;
+    DOWNLOAD_FLAG downloadFlag;
+    QString downloadFilepath;
+}DownloadItem;
+
 class myThread : public QObject
 {
     Q_OBJECT
@@ -16,15 +32,17 @@ public:
 
 private:
     QString FolderPath;
-    QQueue<QString> q;
+    QQueue<DownloadItem> q;
 signals:
-    void download_start(int dp);
-    void sig_downloadCmd_finished(QString filepath);
+    void download_start();
+    void sig_downloadCmd_finished();
+    void sig_download_dequeue(DownloadItem mDownloadItem);
 public slots:
     void setFlag(bool flag = false);
     void display();
     void addurl(QString s,int defaultP);
-    void downloadCmd(int dp=0);
+    void downloadCmd();
+
 
 };
 

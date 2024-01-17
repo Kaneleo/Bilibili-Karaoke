@@ -73,7 +73,9 @@ MainWindow::MainWindow(QWidget *parent) :
     mPopMenu->addAction(mSwitchToNextAction);
 
     connect(this,SIGNAL(sig_download(QString,int)),myObject,SLOT(addurl(QString,int)),Qt::DirectConnection);
-    connect(myObject,SIGNAL(sig_downloadCmd_finished(QString)),this,SLOT(close_downloadCmd(QString)));
+    connect(myObject,SIGNAL(sig_downloadCmd_finished()),this,SLOT(close_downloadCmd()));
+    connect(myObject,SIGNAL(sig_download_dequeue(DownloadItem)),this,SLOT(slot_download_dequeue(DownloadItem)));
+
     connect(newRequestMapper->mDownloadController,SIGNAL(add_file(QString)),this,SLOT(addFileFromWeb(QString)));
 
     connect(newRequestMapper->mPlayController,SIGNAL(web_resume_sig()),this,SLOT(web_resume_slot()));
@@ -125,7 +127,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 //    mCheckFilesTimer = new QTimer;
 //    connect(mCheckFilesTimer, &QTimer::timeout, this, &MainWindow::slotTimerTimeOut);
-//    setFolderPath(QDir::currentPath()+"/Downloads");
+    setFolderPath(QDir::currentPath()+"/Downloads");
 //    mCheckFilesTimer->start(500);
 
 //    mChangeTimer = new QTimer;
@@ -478,7 +480,7 @@ void MainWindow::doAdd()
 {
     QStringList fileList = QFileDialog::getOpenFileNames(
                this, QStringLiteral("选择要播放的文件"),
-                AppConfig::gVideoFilePath,//初始目录
+                mFolderPath,//初始目录
                 QStringLiteral("视频文件 (*.flv *.rmvb *.avi *.mp4 *.mkv );;")
                 +QStringLiteral("音频文件 (*.mp3 *.wma *.wav *.m4a);;")
                 +QStringLiteral("所有文件 (*.*)"));
@@ -975,7 +977,7 @@ bool MainWindow::eventFilter(QObject *target, QEvent *event)
     return DragAbleWidget::eventFilter(target, event);
 }
 
-void MainWindow::close_downloadCmd(QString filepath){
+void MainWindow::close_downloadCmd(){
     if(newThread->isRunning())
        {
            newThread->quit();
@@ -983,10 +985,9 @@ void MainWindow::close_downloadCmd(QString filepath){
        }
 
     setDownloadingFlag(false);
-    addVideoFile(filepath);
 
       qDebug()<<QThread::currentThreadId()<<"recv work stop signal"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")<<endl;
-      qDebug()<<filepath<<endl;
+
 }
 
 void MainWindow::slotSetP(int PIndex){
@@ -1034,3 +1035,16 @@ void MainWindow::web_mute_slot(){
          ui->label_volume->setText(QString("%1").arg(volume));
      }
 }
+
+void MainWindow::slot_download_dequeue(DownloadItem mDownloadItem){
+    mDownloadResult=mDownloadItem;
+    qDebug()<<mDownloadItem.url<<endl;
+    qDebug()<<mDownloadItem.defaultP<<endl;
+    qDebug()<<mDownloadItem.downloadFlag<<endl;
+    qDebug()<<mDownloadItem.downloadFilepath<<endl;
+    if(mDownloadItem.downloadFlag == SUCCESS)
+        emit addVideoFile(mDownloadResult.downloadFilepath);
+}
+
+
+

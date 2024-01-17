@@ -56,6 +56,7 @@ private:
 
     int mDefaultP=0;
 
+    DownloadItem mDownloadResult;
     BOOL mDownloadingFlag;
 
     myThread *myObject;
@@ -74,7 +75,6 @@ private:
     QPropertyAnimation *mAnimation_ControlWidget;   //控制底部控制控件的出现和隐藏
     void showOutControlWidget(); //显示底部控制控件
     void hideControlWidget();    //隐藏底部控制控件
-
 
     QMenu* mPopMenu;
 
@@ -122,7 +122,7 @@ private slots:
 
     void slotCustomContextMenuRequested();
     void slotActionClick();
-    void close_downloadCmd(QString filepath);
+    void close_downloadCmd();
 
     void slotSetP(int PIndex);
     void addFileFromWeb(QString filepath);
@@ -130,6 +130,7 @@ private slots:
     void web_resume_slot();
     void web_next_slot();
     void web_mute_slot();
+    void slot_download_dequeue(DownloadItem mDownloadItem);
 
     ///以下函数，是播放器的回调函数，用于输出信息给界面
 protected:

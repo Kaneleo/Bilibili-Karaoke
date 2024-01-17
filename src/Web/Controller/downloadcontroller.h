@@ -36,13 +36,14 @@ public:
 private:
     BOOL mDownloadingFlag;
     void setDownloadingFlag(BOOL flag);
-
+    DownloadItem mDownloadResult;
 
 signals:
         void add_url(QString url,int defaultP);
         void add_file(QString url);
 private slots:
-        void close_download_web_thread(QString filename);
+        void close_download_web_thread();
+        void slot_web_download_dequeue(DownloadItem mDownloadItem);
 };
 
 #endif // DownloadController_H

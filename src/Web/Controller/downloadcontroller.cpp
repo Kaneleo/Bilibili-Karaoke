@@ -28,7 +28,8 @@ DownloadController::DownloadController()
     myObject->setPath(QDir::currentPath()+"/Downloads");
     myObject->moveToThread(newThread);
     connect(this,SIGNAL(add_url(QString,int)),myObject,SLOT(addurl(QString,int)),Qt::DirectConnection);
-    connect(myObject,SIGNAL(sig_downloadCmd_finished(QString)),this,SLOT(close_download_web_thread(QString)));
+    connect(myObject,SIGNAL(sig_downloadCmd_finished()),this,SLOT(close_download_web_thread()));
+    connect(myObject,SIGNAL(sig_download_dequeue(DownloadItem)),this,SLOT(slot_web_download_dequeue(DownloadItem)));
 }
 
 void DownloadController::service(HttpRequest& request, HttpResponse& response)
@@ -101,7 +102,7 @@ void DownloadController::service(HttpRequest& request, HttpResponse& response)
 }
 
 
-void DownloadController::close_download_web_thread(QString filename){
+void DownloadController::close_download_web_thread(){
     if(newThread->isRunning())
        {
            newThread->quit();
@@ -109,7 +110,6 @@ void DownloadController::close_download_web_thread(QString filename){
        }
 
     setDownloadingFlag(false);
-    emit add_file(filename);
 
       qDebug()<<QThread::currentThreadId()<<"recv work stop signal"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
 }
@@ -121,4 +121,14 @@ void DownloadController::setDownloadingFlag(BOOL flag){
 
 BOOL DownloadController::getDownloadingFlag(){
    return mDownloadingFlag;
+}
+
+void DownloadController::slot_web_download_dequeue(DownloadItem mDownloadItem){
+    mDownloadResult=mDownloadItem;
+    qDebug()<<mDownloadItem.url<<endl;
+    qDebug()<<mDownloadItem.defaultP<<endl;
+    qDebug()<<mDownloadItem.downloadFlag<<endl;
+    qDebug()<<mDownloadItem.downloadFilepath<<endl;
+    if(mDownloadItem.downloadFlag == SUCCESS)
+        emit add_file(mDownloadResult.downloadFilepath);
 }

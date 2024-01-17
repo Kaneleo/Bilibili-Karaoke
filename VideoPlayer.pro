@@ -38,7 +38,7 @@ include(module/DragAbleWidget/DragAbleWidget.pri)
 
 include(module/QtWebApp/httpserver/httpserver.pri)
 
-OTHER_FILES += src/Web/doc/*
+OTHER_FILES += src/Web/doc/Demo1.ini src/Web/doc/docroot/*
 
 
 SOURCES += \
@@ -53,8 +53,9 @@ SOURCES += \
     src/thread/myThread.cpp \
         src/Web/global.cpp \
         src/Web/requestmapper.cpp \
-        src/Web/Controller/dumpcontroller.cpp \
-        src/Web/Controller/formcontroller.cpp
+        src/Web/Controller/listcontroller.cpp \
+        src/Web/Controller/playcontroller.cpp \
+        src/Web/Controller/downloadcontroller.cpp
 
 HEADERS  += \
     src/AppConfig.h \
@@ -67,8 +68,9 @@ HEADERS  += \
     src/thread/myThread.h \
     src/Web/global.h \
     src/Web/requestmapper.h \
-    src/Web/Controller/dumpcontroller.h \
-    src/Web/Controller/formcontroller.h
+    src/Web/Controller/listcontroller.h \
+    src/Web/Controller/playcontroller.h \
+    src/Web/Controller/downloadcontroller.h
 
 
 FORMS    += \
