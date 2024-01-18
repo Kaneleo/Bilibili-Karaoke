@@ -112,6 +112,7 @@ private:
     void playVideoFile(const QString &filePath);
 signals:
         void sig_download(QString s,int dp);
+        void sig_send_list(QStringList* mList, int* mIndex);
 
 private slots:
     ///播放器相关的槽函数

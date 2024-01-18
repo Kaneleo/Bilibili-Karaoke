@@ -72,9 +72,15 @@ void DownloadController::service(HttpRequest& request, HttpResponse& response)
             //addVideoFile(s);
             //mPlayer->startPlay(s.toStdString());
            // return ;
+            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            array+="web url not suppport";
+            response.write(array,true);
         }
         else if(defaultPIndex==-1){
             qDebug()<<"default p not suppport"<<endl;
+            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            array+="default p not suppport";
+            response.write(array,true);
         }
         else{
             setDownloadingFlag(true);
@@ -84,6 +90,10 @@ void DownloadController::service(HttpRequest& request, HttpResponse& response)
             qDebug()<<"web thread Downloading"<<endl;
 
         emit add_url(QString(url.toString()),defaultPIndex);
+
+            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            array+="web thread Downloading";
+            response.write(array,true);
         }
     }
     else

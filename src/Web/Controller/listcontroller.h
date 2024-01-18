@@ -24,8 +24,17 @@ public:
     /** Constructor */
     ListController();
 
+    int requestFlag=0; //0 wait, 1 requesting, 2 success ,3 failed
+    int* mCurrentIndexPtr=nullptr;
+    QStringList* mVideoList;
+
     /** Generates the response */
     void service(HttpRequest& request, HttpResponse& response);
+
+signals:
+
+private slots:
+    void slot_send_list(QStringList* mList, int* mIndex);
 };
 
 

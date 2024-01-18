@@ -9,93 +9,61 @@
 #include <QThread>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonObject> // { }
+#include <QJsonArray> // [ ]
+#include <QJsonDocument> // 解析Json
+#include <QJsonValue> // int float double bool null { } [ ]
+#include <QJsonParseError>
 
 extern QString docrootPath;
 
 ListController::ListController()
-{}
+{
+    requestFlag=1;
+
+}
 
 void ListController::service(HttpRequest& request, HttpResponse& response)
 {
-       response.setHeader("Content-Type", "text/html; charset=UTF-8");
-       response.setCookie(HttpCookie("firstCookie","hello",600,QByteArray(),QByteArray(),QByteArray(),false,true));
-       response.setCookie(HttpCookie("secondCookie","world",600));
+    QString filename="index.html";
+    QByteArray array="";
 
-       QByteArray body("<html><body>");
-       body.append("<b>Request:</b>");
-       body.append("<br>Method: ");
-       body.append(request.getMethod());
-       body.append("<br>Path: ");
-       body.append(request.getPath());
-       body.append("<br>Version: ");
-       body.append(request.getVersion());
+    if(requestFlag==2){
+        response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+        QJsonDocument document;
+        QJsonObject jsonObject;
 
-       body.append("<p><b>Headers:</b>");
-       #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-           QMultiMapIterator<QByteArray,QByteArray> i(request.getHeaderMap());
-       #else
-           QMapIterator<QByteArray,QByteArray> i(request.getHeaderMap());
-       #endif
-       while (i.hasNext())
-       {
-           i.next();
-           body.append("<br>");
-           body.append(i.key());
-           body.append("=");
-           body.append(i.value());
-       }
+        for(int i=0;i<mVideoList->size();i++){
+            jsonObject.insert(QString(i),mVideoList->at(i));
+        }
 
-       body.append("<p><b>Parameters:</b>");
 
-       #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-           i=QMultiMapIterator<QByteArray,QByteArray>(request.getParameterMap());
-       #else
-           i=QMapIterator<QByteArray,QByteArray>(request.getParameterMap());
-       #endif
-       while (i.hasNext())
-       {
-           i.next();
-           body.append("<br>");
-           body.append(i.key());
-           body.append("=");
-           body.append(i.value());
-       }
+        document.setObject(jsonObject);
+        QByteArray simpbyte_array = document.toJson(QJsonDocument::Compact);
+        QString simpjson_str(simpbyte_array);
 
-       body.append("<p><b>Cookies:</b>");
-       QMapIterator<QByteArray,QByteArray> i2 = QMapIterator<QByteArray,QByteArray>(request.getCookieMap());
-       while (i2.hasNext())
-       {
-           i2.next();
-           body.append("<br>");
-           body.append(i2.key());
-           body.append("=");
-           body.append(i2.value());
-       }
+        qDebug()<<"QJsonValue:"<<simpjson_str;
+        qDebug()<<"mCurrentIndex:"<<*mCurrentIndexPtr;
+        array+="mVideoList";
+        response.write(array,true);
+    }
+    else
+    {
+        QFile file(docrootPath+filename);
 
-       body.append("<p><b>Body:</b><br>");
-       body.append(request.getBody());
+        bool isok = file.open(QIODevice::ReadOnly); //只读模式打开
+        if(isok == true){
+         array  =  file.readAll();
+         file.close();
+        }
+        response.setHeader("Content-Type", "text/html; charset=UTF-8");
+        response.write(array,true);
+    }
 
-       body.append("</body></html>");
-       response.write(body,true);
+}
 
-//    QString filename="index.html";
-//    QByteArray array="";
-//    if (request.getParameter("urlAddr").size()!=0)
-//    {
-//        //post
-//        qDebug()<<"url:"<<request.getParameter("urlAddr")<<endl;
-//    }
-//    //else
-//    {
-//        QFile file(docrootPath+filename);
-
-//        bool isok = file.open(QIODevice::ReadOnly); //只读模式打开
-//        if(isok == true){
-//          array  =  file.readAll();
-//        }
-//        file.close();
-
-//        response.setHeader("Content-Type", "text/html; charset=UTF-8");
-//        response.write(array,true);
-//    }
+void ListController::slot_send_list(QStringList* mList,int* mIndex){
+    requestFlag=2;
+    mVideoList=mList;
+    mCurrentIndexPtr=mIndex;
 }

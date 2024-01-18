@@ -82,6 +82,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(newRequestMapper->mPlayController,SIGNAL(web_next_sig()),this,SLOT(web_next_slot()));
     connect(newRequestMapper->mPlayController,SIGNAL(web_mute_sig()),this,SLOT(web_mute_slot()));
 
+
+    qRegisterMetaType<QStringList*>("QStringList*");
+    connect(this,SIGNAL(sig_send_list(QStringList*,int*)),newRequestMapper->mListController,SLOT(slot_send_list(QStringList*,int*)));
+    emit sig_send_list(&mVideoFileList, &mCurrentIndex);
+
     connect(mAddVideoAction,     &QAction::triggered, this, &MainWindow::slotActionClick);
     //connect(mEditVideoAction,    &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mDeleteVideoAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
