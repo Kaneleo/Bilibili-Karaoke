@@ -698,6 +698,20 @@ void MainWindow::doSwitchToNext(){
     mPlayer->play();
 }
 
+void MainWindow::moveToNext(int selectItem){
+    QString itemToMove=mVideoFileList.at(selectItem);
+//     qDebug()<<"itemToMove:"<<itemToMove;
+     if (selectItem <= mCurrentIndex)
+     {
+         mCurrentIndex --;
+     }
+    mVideoFileList.removeAt(selectItem);
+    mVideoFileList.insert(mCurrentIndex+1,itemToMove);
+
+    QListWidgetItem* item=ui->listWidget->takeItem(selectItem);
+    ui->listWidget->insertItem(mCurrentIndex+1,item);
+}
+
 void MainWindow::doMoveToNext(){
 //    qDebug()<<"mCurrentIndex:"<<mCurrentIndex;
 //    QString itemToNext = mVideoFileList.at(mCurrentIndex);
@@ -713,20 +727,22 @@ void MainWindow::doMoveToNext(){
     QListWidgetItem* item=selectedItemList.at(0);
     int rowValue = ui->listWidget->row(item);
 
+    moveToNext(rowValue);
+
 //    qDebug()<<"rowValue:"<<rowValue;
 
-    QString itemToMove=mVideoFileList.at(rowValue);
-//     qDebug()<<"itemToMove:"<<itemToMove;
-     if (rowValue <= mCurrentIndex)
-     {
-         mCurrentIndex --;
-     }
-    mVideoFileList.removeAt(rowValue);
-    mVideoFileList.insert(mCurrentIndex+1,itemToMove);
+//    QString itemToMove=mVideoFileList.at(rowValue);
+////     qDebug()<<"itemToMove:"<<itemToMove;
+//     if (rowValue <= mCurrentIndex)
+//     {
+//         mCurrentIndex --;
+//     }
+//    mVideoFileList.removeAt(rowValue);
+//    mVideoFileList.insert(mCurrentIndex+1,itemToMove);
 
 
-    ui->listWidget->takeItem(rowValue);
-    ui->listWidget->insertItem(mCurrentIndex+1,item);
+//    ui->listWidget->takeItem(rowValue);
+//    ui->listWidget->insertItem(mCurrentIndex+1,item);
 }
 
 

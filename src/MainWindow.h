@@ -99,6 +99,7 @@ private:
     void doMoveToNext();
 
     void setVideoNums(const int &nums);
+    void moveToNext(int selectItem);
 
     QStringList mVideoFileList;
     QStringList mVideoFileListLocal;
