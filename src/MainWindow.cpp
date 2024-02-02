@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mClearVideoAction            = new QAction(QIcon("images/open.png"), QStringLiteral("清空"), this);
     mChangeVocalAction           = new QAction(QIcon("images/open.png"), QStringLiteral("切换原唱伴唱"), this);
     mSwitchToNextAction           = new QAction(QIcon("images/open.png"), QStringLiteral("下一首"), this);
+    mMoveToNextAction   = new QAction(QIcon("images/open.png"), QStringLiteral("切换到下一首"), this);
     mPopMenu->addAction(mAddVideoAction);
 //    mPopMenu->addAction(mEditVideoAction);
 //    mPopMenu->addSeparator();       //添加分离器
@@ -71,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mPopMenu->addAction(mClearVideoAction);
     mPopMenu->addAction(mChangeVocalAction);
     mPopMenu->addAction(mSwitchToNextAction);
+    mPopMenu->addAction(mMoveToNextAction);
 
     connect(this,SIGNAL(sig_download(QString,int)),myObject,SLOT(addurl(QString,int)),Qt::DirectConnection);
     connect(myObject,SIGNAL(sig_downloadCmd_finished()),this,SLOT(close_downloadCmd()));
@@ -93,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mClearVideoAction,   &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mChangeVocalAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
     connect(mSwitchToNextAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
+    connect(mMoveToNextAction,  &QAction::triggered, this, &MainWindow::slotActionClick);
 
     connect(ui->pushButton_open, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
     connect(ui->toolButton_open, &QPushButton::clicked, this, &MainWindow::slotBtnClick);
@@ -695,6 +698,36 @@ void MainWindow::doSwitchToNext(){
     mPlayer->play();
 }
 
+void MainWindow::doMoveToNext(){
+//    qDebug()<<"mCurrentIndex:"<<mCurrentIndex;
+//    QString itemToNext = mVideoFileList.at(mCurrentIndex);
+
+//    QList<int> RowList;
+
+    QList<QListWidgetItem*> selectedItemList = ui->listWidget->selectedItems();
+    if(selectedItemList.size()>1){
+        qDebug()<<"only support 1 item:"<<mCurrentIndex;
+        return;
+    }
+
+    QListWidgetItem* item=selectedItemList.at(0);
+    int rowValue = ui->listWidget->row(item);
+
+//    qDebug()<<"rowValue:"<<rowValue;
+
+    QString itemToMove=mVideoFileList.at(rowValue);
+//     qDebug()<<"itemToMove:"<<itemToMove;
+     if (rowValue <= mCurrentIndex)
+     {
+         mCurrentIndex --;
+     }
+    mVideoFileList.removeAt(rowValue);
+    mVideoFileList.insert(mCurrentIndex+1,itemToMove);
+
+
+    ui->listWidget->takeItem(rowValue);
+    ui->listWidget->insertItem(mCurrentIndex+1,item);
+}
 
 
 
@@ -821,6 +854,10 @@ void MainWindow::slotActionClick()
     else if (QObject::sender() == mSwitchToNextAction)
     {
         doSwitchToNext();
+    }
+    else if (QObject::sender() == mMoveToNextAction)
+    {
+        doMoveToNext();
     }
 
 }

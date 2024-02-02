@@ -84,7 +84,7 @@ private:
     QAction *mClearVideoAction;
     QAction *mChangeVocalAction;
     QAction *mSwitchToNextAction;
-
+    QAction *mMoveToNextAction;
 
     void setDownloadingFlag(BOOL flag);
 
@@ -96,7 +96,7 @@ private:
     void doClear();
     void doChangeVocal();
     void doSwitchToNext();
-
+    void doMoveToNext();
 
     void setVideoNums(const int &nums);
 
