@@ -99,7 +99,7 @@ private:
     void doMoveToNext();
 
     void setVideoNums(const int &nums);
-    void moveToNext(int selectItem);
+
 
     QStringList mVideoFileList;
     QStringList mVideoFileListLocal;
@@ -133,6 +133,7 @@ private slots:
     void web_next_slot();
     void web_mute_slot();
     void slot_download_dequeue(DownloadItem mDownloadItem);
+    void moveToNext(int selectItem);
 
     ///以下函数，是播放器的回调函数，用于输出信息给界面
 protected:

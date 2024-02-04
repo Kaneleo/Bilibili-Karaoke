@@ -32,6 +32,7 @@ public:
     void service(HttpRequest& request, HttpResponse& response);
 
 signals:
+    void sig_moveToNext(int item);
 
 private slots:
     void slot_send_list(QStringList* mList, int* mIndex);

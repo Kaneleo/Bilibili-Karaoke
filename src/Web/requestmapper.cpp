@@ -53,7 +53,13 @@ void RequestMapper::service(HttpRequest& request, HttpResponse& response)
 
     else if (path.startsWith("/list"))
     {
-        mListController->service(request, response);
+        if (path.startsWith("/list/moveToNext")){
+//            mListController->moveToNext(request, response);
+        }
+
+        else
+            mListController->service(request, response);
+
     }
 
     else if (path.startsWith("/download"))

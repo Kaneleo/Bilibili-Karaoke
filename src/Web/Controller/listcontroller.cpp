@@ -20,8 +20,29 @@ extern QString docrootPath;
 ListController::ListController()
 {
     requestFlag=1;
-
 }
+
+//void ListController::moveToNext(HttpRequest& request, HttpResponse& response)
+//{
+//    QString filename="index.html";
+//    QByteArray array="";
+//    QFile file(docrootPath+filename);
+//    QByteArray htmlBody=request.getBody();
+//    int item=0;
+
+
+//    emit sig_moveToNext(item);
+//    qDebug()<<"sig_moveToNext"<<endl;
+
+//    bool isok = file.open(QIODevice::ReadOnly); //只读模式打开
+//    if(isok == true){
+//        array  =  file.readAll();
+//        file.close();
+//    }
+//    response.setHeader("Content-Type", "text/html; charset=UTF-8");
+//    response.write(array,true);
+//}
+
 
 void ListController::service(HttpRequest& request, HttpResponse& response)
 {

@@ -83,6 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(newRequestMapper->mPlayController,SIGNAL(web_resume_sig()),this,SLOT(web_resume_slot()));
     connect(newRequestMapper->mPlayController,SIGNAL(web_next_sig()),this,SLOT(web_next_slot()));
     connect(newRequestMapper->mPlayController,SIGNAL(web_mute_sig()),this,SLOT(web_mute_slot()));
+    connect(newRequestMapper->mListController,SIGNAL(sig_moveToNext(int)),this,SLOT(moveToNext(int)));
 
 
     qRegisterMetaType<QStringList*>("QStringList*");
