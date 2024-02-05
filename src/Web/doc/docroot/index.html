@@ -1,50 +1,127 @@
 ﻿<html>
 
+<head>
+  <title>播放器</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+
 <body>
-	<div id="dev1" style="float:left;">
-		<textarea id="input_url" rows="10" cols="60">https://www.bilibili.com/video/BV1Ys4y1r7Dj/?p=51</textarea>
-	</div>
+  <div id="dev1" style="float:left;">
+    <textarea id="input_url" rows="10" cols="60">https://www.bilibili.com/video/BV1Ys4y1r7Dj/?p=51</textarea>
+  </div>
 
-	<div id="dev2" style="width:100px;float:left;">
-		<textarea id="add_result" rows="5" cols="5">空闲中</textarea>
-                <select id="defaultP">
-                   <option value="1080p" selected>1080p</option>
-                   <option value="720p">720p</option>
-                   <option value="480p">480p</option>
-                   <option value="360p">360p</option>
-                </select>
-		<button type="button" id="submit_btn">添加</button>
-	</div>
+  <div id="dev2" style="width:100px;float:left;">
+    <textarea id="add_result" rows="5" cols="5">空闲中</textarea>
+    <select id="defaultP">
+      <option value="1080p" selected>1080p</option>
+      <option value="720p">720p</option>
+      <option value="480p">480p</option>
+      <option value="360p">360p</option>
+    </select>
+    <button type="button" id="submit_btn">下载</button>
+    <button type="button" id="submit_btn_mute">静音</button>
+    <button type="button" id="submit_btn_next">下一首</button>
+    <button type="button" id="submit_btn_resume">恢复</button>
+    <table id="myTable">
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+      </tr>
+    </table>
+  </div>
 
-	<script>
+  <script>
 
-		//var addResult = document.getElementById("add_result");
-		var submitBtn = document.getElementById("submit_btn");
+    //var addResult = document.getElementById("add_result");
+    var submitBtn = document.getElementById("submit_btn");
 
-		submitBtn.onclick = function () {
-			var inputUrl = input_url.value;
-			add_result.value = '正在添加中……';
+    submitBtn.onclick = function () {
+      var inputUrl = input_url.value;
+      add_result.value = '正在添加中……';
 
-			var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
-                        httpRequest.open('POST', 'list/moveToNext', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
-                                    httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+      var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+      httpRequest.open('POST', 'list', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+      httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+      var obj = { "inputUrl": inputUrl, "defaultP": defaultP.value };
+      httpRequest.send(JSON.stringify(obj));//发送请求 将json写入send中
 
-                                     httpRequest.send(3);
-                       // var obj = { "inputUrl": inputUrl,"defaultP": defaultP.value   };
-                                    //httpRequest.send(JSON.stringify(obj));//发送请求 将json写入send中
-			
-			/**
-			 * 获取数据后的处理程序
-			 */
-                        /* httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
-                                if (httpRequest.readyState == 4 && httpRequest.status == 200) {//验证请求是否发送成功
-                                        var responseText = httpRequest.responseText;//获取到服务端返回的数据
-                                        alert(responseText);
-                                        console.log(responseText);
-                                }
-                         };*/
-		};
-	</script>
+      /**
+       * 获取数据后的处理程序
+       */
+      httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
+        if (httpRequest.readyState == 4 && httpRequest.status == 200) {//验证请求是否发送成功
+          var responseText = httpRequest.responseText;//获取到服务端返回的数据
+          alert(responseText);
+          console.log(responseText);
+        }
+      };
+    };
+
+    var submitBtnMute = document.getElementById("submit_btn_mute");
+
+    submitBtnMute.onclick = function () {
+      var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+      httpRequest.open('POST', '/play/mute', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+      httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+      httpRequest.send();//发送请求 将json写入send中
+    };
+
+    var submitBtnNext = document.getElementById("submit_btn_next");
+
+    submitBtnNext.onclick = function () {
+      var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+      httpRequest.open('POST', '/play/next', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+      httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+      httpRequest.send();//发送请求 将json写入send中
+    };
+
+    var submitBtnResume = document.getElementById("submit_btn_resume");
+
+    submitBtnResume.onclick = function () {
+      var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+      httpRequest.open('POST', '/play/resume', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+      httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+      httpRequest.send();//发送请求 将json写入send中
+    };
+
+    var table = document.getElementById("myTable");
+    function showList() {
+      var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+      httpRequest.open('POST', 'list', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+      httpRequest.setRequestHeader("Content-type", "application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+      httpRequest.send();//发送请求 将json写入send中
+      httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
+        if (httpRequest.readyState == 4 && httpRequest.status == 200) {//验证请求是否发送成功
+          var responseText = httpRequest.responseText;//获取到服务端返回的数据
+          jsonData=eval("("+responseText+")");
+          table.innerHTML="";
+          for (var key in jsonData) {
+            if (jsonData.hasOwnProperty(key)) {
+              var row = table.insertRow();
+              var cellKey = row.insertCell();
+              var cellValue = row.insertCell();
+              cellKey.innerHTML = key;
+              cellValue.innerHTML = jsonData[key];
+            }
+          }
+        }
+      };
+
+    }
+    setInterval(showList, 1000);
+  </script>
 
 </body>
 

@@ -54,8 +54,11 @@ void ListController::service(HttpRequest& request, HttpResponse& response)
         QJsonDocument document;
         QJsonObject jsonObject;
 
+
         for(int i=0;i<mVideoList->size();i++){
-            jsonObject.insert(QString(i),mVideoList->at(i));
+             QFileInfo fileInfo(mVideoList->at(i));
+
+            jsonObject.insert(QString::number(i+1),fileInfo.fileName());
         }
 
 
@@ -65,8 +68,8 @@ void ListController::service(HttpRequest& request, HttpResponse& response)
 
         qDebug()<<"QJsonValue:"<<simpjson_str;
         qDebug()<<"mCurrentIndex:"<<*mCurrentIndexPtr;
-        array+="mVideoList";
-        response.write(array,true);
+//        array+="mVideoList";
+        response.write(simpbyte_array,true);
     }
     else
     {
