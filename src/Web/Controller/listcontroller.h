@@ -28,6 +28,8 @@ public:
     int* mCurrentIndexPtr=nullptr;
     QStringList* mVideoList;
 
+    void moveToNext(HttpRequest& request, HttpResponse& response);
+
     /** Generates the response */
     void service(HttpRequest& request, HttpResponse& response);
 

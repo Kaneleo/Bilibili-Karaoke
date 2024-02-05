@@ -54,7 +54,7 @@ void RequestMapper::service(HttpRequest& request, HttpResponse& response)
     else if (path.startsWith("/list"))
     {
         if (path.startsWith("/list/moveToNext")){
-//            mListController->moveToNext(request, response);
+            mListController->moveToNext(request, response);
         }
 
         else
